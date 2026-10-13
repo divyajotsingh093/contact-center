@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { requireActor } from "@/ccms/session";
 import { confirmAssessment, reviseOutput } from "@/ccms/services/assessment";
 import { resend } from "@/ccms/services/communications";
+import { addWorkNote, emailCustomer } from "@/ccms/services/notes";
 import type { AssessmentOutput } from "@/ccms/constants";
 import { flushOutbox } from "@/integrations/n8n";
 
@@ -32,4 +33,14 @@ export async function confirmAssessmentAction(number: string, caseId: string) {
 export async function resendAction(number: string, communicationId: string) {
   const actor = await requireActor();
   return run(`/cases/${number}`, () => resend(communicationId, actor.id), "Message re-queued");
+}
+
+export async function addNoteAction(number: string, caseId: string, body: string) {
+  const actor = await requireActor();
+  return run(`/cases/${number}`, () => addWorkNote(caseId, body, actor), "Work note added");
+}
+
+export async function emailCustomerAction(number: string, caseId: string, subject: string, body: string) {
+  const actor = await requireActor();
+  return run(`/cases/${number}`, () => emailCustomer(caseId, subject, body, actor), "Email queued for sending");
 }

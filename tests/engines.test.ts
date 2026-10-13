@@ -233,3 +233,13 @@ describe("Kamios local subject for sources without one", () => {
     expect(ex.subject.value).toBe("My hospital claim for my knee surgery is delayed.");
   });
 });
+
+describe("Kamios local subject for letters", () => {
+  it("skips address lines and picks the request", () => {
+    const ex = kl.extract({
+      source: "letter",
+      text: "[OCR text]\n12 October 2026\n\nIncome Insurance Limited\nCustomer Service\n\nDear Sir/Madam,\n\nCould you advise how I can update the nominee on my policy LF40003333? I recently got married.",
+    });
+    expect(ex.subject.value).toBe("Could you advise how I can update the nominee on my policy LF40003333?");
+  });
+});

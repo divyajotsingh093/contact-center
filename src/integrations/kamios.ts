@@ -10,7 +10,8 @@ export type AgentName =
   | "preliminary_assessment"
   | "duplicate_detection"
   | "response_drafting"
-  | "rca_suggestion";
+  | "rca_suggestion"
+  | "case_summary";
 
 export interface Scored<T> {
   value: T;
@@ -111,6 +112,24 @@ export interface RcaSuggestion {
   capa: { actionType: "corrective" | "preventive"; description: string; buCode: string }[];
 }
 
+// ---- case_summary (Case 360 side panel)
+
+export interface SummaryInput {
+  number: string;
+  nature: string | null;
+  subject: string;
+  description: string;
+  desiredOutcome: string | null;
+  stage: string;
+  flags: string[];
+  recentNotes: string[];
+}
+export interface CaseSummary {
+  summary: string;
+  keyPoints: string[];
+  suggestedNextStep: string;
+}
+
 export interface AgentResult<T> {
   result: T;
   source: "kamios" | "local";
@@ -145,4 +164,5 @@ export const kamios = {
     callAgent("duplicate_detection", input, local.findDuplicates),
   draftResponse: (input: DraftInput) => callAgent("response_drafting", input, local.draftResponse),
   suggestRca: (input: RcaInput) => callAgent("rca_suggestion", input, local.suggestRca),
+  summarize: (input: SummaryInput) => callAgent("case_summary", input, local.summarize),
 };

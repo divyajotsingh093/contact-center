@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { intakeCase } from "@/ccms/services/intake";
 import { recordDelivery } from "@/ccms/services/communications";
 import { SAMPLES } from "@/ccms/demo/samples";
+import { slaTick } from "@/ccms/services/sla-service";
 
 async function main() {
   for (const [i, s] of SAMPLES.entries()) {
@@ -31,6 +32,9 @@ async function main() {
     }
     console.log(`${r.number}  ${s.label}`);
   }
+  // Raise any SLA alerts now due, as the n8n schedule would.
+  const tick = await slaTick();
+  console.log(`SLA tick: ${tick.nearBreach} near-breach, ${tick.breached} breached`);
 }
 
 main().finally(() => db.$disconnect());

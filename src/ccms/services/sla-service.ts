@@ -8,9 +8,14 @@ import { emit } from "@/integrations/n8n";
 import { appendAudit } from "../audit";
 import { dueAlerts, extend } from "../sla";
 
-export async function slaTick(now = new Date()) {
+/** Raises due SLA alerts. `caseIds` limits the scan (used by tests and targeted re-checks). */
+export async function slaTick(now = new Date(), opts: { caseIds?: string[] } = {}) {
   const clocks = await db.slaClock.findMany({
-    where: { state: "running", OR: [{ nearBreachAlertedAt: null }, { breachedAt: null }] },
+    where: {
+      state: "running",
+      OR: [{ nearBreachAlertedAt: null }, { breachedAt: null }],
+      ...(opts.caseIds ? { caseId: { in: opts.caseIds } } : {}),
+    },
     include: { case: { select: { id: true, number: true, nature: true, priority: true, caseManagerId: true, teamId: true, bu: { select: { code: true } } } } },
   });
   let nearBreach = 0;
@@ -33,7 +38,7 @@ export async function slaTick(now = new Date()) {
       if (alerts.includes("breached")) {
         await tx.slaClock.update({ where: { id: clock.id }, data: { breachedAt: now } });
         await emit(tx, "sla.breached", clock.caseId, { ...base, notify: String(thresholds.outputs.breachNotify ?? "").split(",").filter(Boolean) });
-        await tx.caseNote.create({ data: { caseId: clock.caseId, kind: "system", body: `${clock.kind} SLA breached.` } });
+        await tx.caseNote.create({ data: { caseId: clock.caseId, kind: "system", body: `${clock.kind.charAt(0).toUpperCase()}${clock.kind.slice(1)} SLA breached.` } });
         breached++;
       }
     });

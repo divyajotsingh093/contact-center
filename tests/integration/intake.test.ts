@@ -91,11 +91,11 @@ describe("intake pipeline", () => {
     const r = await intakeCase({ source: "web_form", channelRef: `${RUN}-3`, subject: "Question", text: "How do I update my address?" }, null);
     const clock = await db.slaClock.findUniqueOrThrow({ where: { caseId_kind: { caseId: r.caseId, kind: "acknowledgement" } } });
     const late = new Date(clock.targetAt.getTime() + 60_000);
-    const first = await slaTick(late);
+    const first = await slaTick(late, { caseIds: [r.caseId] });
     expect(first.breached).toBeGreaterThanOrEqual(1);
     const types = (await db.outboxEvent.findMany({ where: { caseId: r.caseId, type: { startsWith: "sla." } } })).map((e) => e.type);
     expect(types.sort()).toEqual(["sla.breached", "sla.near_breach"]);
-    await slaTick(late);
+    await slaTick(late, { caseIds: [r.caseId] });
     expect(await db.outboxEvent.count({ where: { caseId: r.caseId, type: { startsWith: "sla." } } })).toBe(2);
   });
 

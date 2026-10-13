@@ -15,6 +15,8 @@ import type {
   RcaInput,
   RcaSuggestion,
   Scored,
+  CaseSummary,
+  SummaryInput,
 } from "./kamios";
 
 const s = <T>(value: T, confidence: number, rationale: string): Scored<T> => ({ value, confidence, rationale });
@@ -52,11 +54,11 @@ function summaryLine(text: string): string {
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l && !/^\[.*\]$/.test(l) && !/^agent:/i.test(l) && !/^(dear|hi|hello|to|re:)\b/i.test(l) && !/^\d{1,2} \w+ \d{4}$/.test(l));
+  // Each line is its own unit (address blocks have no punctuation), then split into sentences.
   const sentences = lines
     .map((l) => l.replace(/^(caller|customer):\s*/i, ""))
-    .join(" ")
-    .split(/(?<=[.!?])\s+/)
-    .filter((x) => !/^my name is\b/i.test(x) && !/^i am \d+/i.test(x));
+    .flatMap((l) => l.split(/(?<=[.!?])\s+/))
+    .filter((x) => x.split(/\s+/).length >= 4 && !/^my name is\b/i.test(x) && !/^i am \d+/i.test(x));
   const cue = sentences.find((x) => /\b(claim|policy|premium|agent|refund|nominee|appeal|service|app|letter|payment)\b/i.test(x));
   return (cue ?? sentences[0] ?? "(no subject)").replace(/\s+/g, " ");
 }
@@ -250,5 +252,36 @@ export function suggestRca(input: RcaInput): RcaSuggestion {
       { actionType: "corrective", description: "Resolve the specific lapse for this customer and confirm in writing.", buCode: bu },
       { actionType: "preventive", description: "Review the process step that failed and add a control or checklist item.", buCode: bu },
     ],
+  };
+}
+
+const NEXT_STEP: Record<string, string> = {
+  intake: "Check the extracted fields against the source.",
+  acknowledgement: "Confirm the acknowledgement was delivered.",
+  assessment: "Review the ten assessment outputs and confirm them.",
+  investigation: "Gather the facts; raise sub-tickets to the BUs involved.",
+  resolution: "Draft the response and complete the closure form.",
+  closure: "Wait for approval and the customer's response.",
+  rca_qa: "Complete the RCA and CAPA actions.",
+  closed: "No action needed.",
+};
+
+export function summarize(input: SummaryInput): CaseSummary {
+  const sentences = input.description
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/^(agent|caller|customer):\s*/gim, "")
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((x) => x.trim())
+    .filter((x) => x.length > 20 && !/^(dear|regards|hi|hello|thank you|yours)/i.test(x));
+  const lead = sentences.slice(0, 2).join(" ");
+  const keyPoints = [
+    ...(input.desiredOutcome ? [`Customer wants: ${input.desiredOutcome.replace(/\.$/, "")}.`] : []),
+    ...input.flags.map((f) => `Flagged ${f}.`),
+    ...input.recentNotes.slice(0, 2),
+  ].slice(0, 4);
+  return {
+    summary: `${input.nature ? input.nature.charAt(0).toUpperCase() + input.nature.slice(1) : "Case"}: ${lead || input.subject}`,
+    keyPoints,
+    suggestedNextStep: NEXT_STEP[input.stage] ?? "Review the case.",
   };
 }

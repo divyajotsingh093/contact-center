@@ -14,7 +14,7 @@ import { lookupEds } from "@/integrations/eds";
 import { emit } from "@/integrations/n8n";
 import { appendAudit } from "../audit";
 import { pickCaseManager } from "../allocation";
-import type { AssessmentOutput } from "../constants";
+import { SOURCE_LABELS, type AssessmentOutput, type Source } from "../constants";
 import { nextNumber } from "./numbers";
 import { queueAcknowledgement } from "./communications";
 
@@ -312,7 +312,7 @@ export async function intakeCase(input: IntakeInput, actorId: string | null): Pr
       data: {
         caseId: c.id,
         kind: "system",
-        body: `Logged from ${input.source}. Allocated to ${alloc.outputs.teamName} (${alloc.rationale}).${
+        body: `Logged from ${SOURCE_LABELS[input.source as Source] ?? input.source}. Allocated to ${alloc.outputs.teamName} (${alloc.rationale}).${
           reopenedFrom ? ` New linked case for ${reopenedFrom.number}.` : ""
         }`,
       },

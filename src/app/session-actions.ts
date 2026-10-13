@@ -14,7 +14,7 @@ export async function signInAs(formData: FormData) {
     secure: process.env.NODE_ENV === "production",
     path: "/",
   });
-  redirect(user.roles.includes("qa") && user.roles.length === 1 ? "/qa" : "/inbox");
+  redirect("/home");
 }
 
 export async function signOut() {

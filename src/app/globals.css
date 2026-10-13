@@ -30,6 +30,9 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.68 0.19 45 / 0.6);
   --sidebar: oklch(0.985 0 0);
+  --page: #f6f6f4;
+  --header: #111110;
+  --series-1: #2a78d6;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -55,6 +58,9 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --sidebar: oklch(0.175 0 0);
+  --page: #0d0d0d;
+  --header: #0a0a0a;
+  --series-1: #3987e5;
 }
 
 @theme inline {
@@ -88,6 +94,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-sidebar: var(--sidebar);
+  --color-page: var(--page);
+  --color-header: var(--header);
 }
 
 @layer base {

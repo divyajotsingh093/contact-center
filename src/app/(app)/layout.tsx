@@ -3,6 +3,7 @@ import {
   Alert02Icon,
   Analytics01Icon,
   CheckmarkCircle02Icon,
+  DashboardSquare01Icon,
   FileAddIcon,
   GitBranchIcon,
   InboxIcon,
@@ -13,22 +14,24 @@ import {
   Task01Icon,
 } from "@hugeicons/core-free-icons";
 import { currentActor } from "@/ccms/session";
-import { inboxCounts } from "@/ccms/queries";
+import { inboxCounts, slaAlerts } from "@/ccms/queries";
 import { ROLE_LABELS, type Role } from "@/ccms/constants";
 import { Nav } from "@/components/ccms/nav";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppHeader } from "@/components/ccms/header";
 import { signOut } from "../session-actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const actor = await currentActor();
   if (!actor) redirect("/login");
-  const counts = await inboxCounts(actor);
+  const [counts, alerts] = await Promise.all([inboxCounts(actor), slaAlerts(actor)]);
   const has = (...r: Role[]) => actor.roles.includes("admin") || r.some((x) => actor.roles.includes(x));
 
   const groups = [
     {
       label: "Work",
       items: [
+        { href: "/home", label: "Home", icon: DashboardSquare01Icon },
         ...(has("case_manager", "team_lead", "ce_team", "head_of_ce")
           ? [{ href: "/inbox", label: "My cases", icon: InboxIcon, count: counts.mine || counts.team }]
           : []),
@@ -56,26 +59,32 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <TooltipProvider>
-      <div className="flex min-h-dvh">
-        <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col gap-6 border-r border-black/[0.06] bg-sidebar px-3 py-4 md:flex dark:border-white/[0.08]">
-          <div className="flex items-center gap-2 px-2">
-            <span className="size-2.5 rounded-sm bg-brand" aria-hidden />
-            <span className="text-sm font-semibold">Income CCMS</span>
-          </div>
-          <Nav groups={groups} />
-          <div className="mt-auto flex flex-col gap-2 border-t border-black/[0.06] px-2 pt-3 dark:border-white/[0.08]">
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[13px] font-medium">{actor.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{actor.roles.map((r) => ROLE_LABELS[r as Role] ?? r).join(", ")}</span>
-            </div>
-            <form action={signOut}>
-              <button type="submit" className="text-xs text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring">
-                Switch persona
-              </button>
-            </form>
-          </div>
-        </aside>
-        <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <div className="flex min-h-dvh flex-col bg-page">
+        <AppHeader
+          user={{ name: actor.name }}
+          roleLabel={actor.roles.map((r) => ROLE_LABELS[r as Role] ?? r).join(", ")}
+          alerts={alerts.map((a) => ({ number: a.number, subject: a.subject, health: a.sla!.health, remainingMs: a.sla!.remainingMs, kind: a.sla!.kind }))}
+          signOut={signOut}
+        />
+        <div className="flex min-h-0 flex-1">
+          <aside className="sticky top-12 hidden h-[calc(100dvh-3rem)] w-56 shrink-0 flex-col gap-6 overflow-y-auto border-r border-black/[0.06] bg-sidebar px-3 py-4 md:flex dark:border-white/[0.08]">
+            <Nav groups={groups} />
+            <dl className="mt-auto flex flex-col gap-1 px-2 text-[11px] text-muted-foreground">
+              {[
+                { name: "Kamios AI Hub", live: Boolean(process.env.KAMIOS_BASE_URL && process.env.KAMIOS_API_TOKEN) },
+                { name: "Reels", live: Boolean(process.env.REELS_BASE_URL && process.env.REELS_API_TOKEN) },
+                { name: "n8n", live: Boolean(process.env.N8N_EVENT_WEBHOOK_URL) },
+              ].map((i) => (
+                <div key={i.name} className="flex items-center gap-1.5">
+                  <span className={`size-1.5 rounded-full ${i.live ? "bg-[#0ca30c]" : "bg-[#898781]"}`} aria-hidden />
+                  <dt>{i.name}</dt>
+                  <dd className="ml-auto">{i.live ? "Connected" : "Local fallback"}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+          <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        </div>
       </div>
     </TooltipProvider>
   );
