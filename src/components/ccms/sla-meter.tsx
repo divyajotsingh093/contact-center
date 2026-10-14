@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert02Icon, CheckmarkCircle02Icon, Clock01Icon, PauseIcon } from "@hugeicons/core-free-icons";
+import { Icon } from "@/components/ccms/icons";
+import { Alert02Icon, CheckmarkCircle02Icon, Clock01Icon, PauseIcon } from "@/components/ccms/icons";
 import type { ClockHealth } from "@/ccms/sla";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "./format";
@@ -49,7 +49,7 @@ export function SlaMeter({
   return (
     <div className={cn("flex min-w-0 flex-col gap-1", className)} title={`${m.label}${live ? ` · ${formatDuration(remainingMs)}` : ""}`}>
       <div className="flex items-center gap-1.5 text-xs whitespace-nowrap">
-        <HugeiconsIcon icon={m.icon} size={13} color={m.color} className="shrink-0" aria-hidden />
+        <Icon icon={m.icon} size={13} color={m.color} className="shrink-0" aria-hidden />
         <span className="font-medium">{m.label}</span>
         {live && (
           <span className="tabular ml-auto truncate text-muted-foreground">

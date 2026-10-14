@@ -1,13 +1,18 @@
 "use client";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert02Icon, ArrowDown01Icon, Logout01Icon, Notification03Icon, Search01Icon, UserSwitchIcon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Alert02Icon, Icon, Logout01Icon, MenuIcon, Notification03Icon, Search01Icon, UpDownIcon, UserSwitchIcon } from "@/components/ccms/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { ClockHealth } from "@/ccms/sla";
 import { Avatar } from "./avatar";
 import { formatDuration } from "./format";
-import { slaMeta } from "./sla-meter";
+import { Nav, type NavItem } from "./nav";
+import { slaMeta, STATUS } from "./sla-meter";
+import { TABS_KEY, WorkspaceTabs } from "./workspace-tabs";
+import { CommandPalette } from "./command-palette";
+import { useCommandShortcut } from "@/components/ui/command-menu";
 
 export interface HeaderAlert {
   number: string;
@@ -17,58 +22,162 @@ export interface HeaderAlert {
   kind: string;
 }
 
-export function AppHeader({
+type Groups = { label: string; items: NavItem[] }[];
+
+/** Left sidebar: brand, search, navigation, platform connections and the signed-in user. */
+export function AppSidebar({
+  groups,
   user,
   roleLabel,
-  alerts,
+  integrations,
+  canLogCase,
   signOut,
 }: {
-  user: { name: string; email?: string };
+  groups: Groups;
+  canLogCase: boolean;
+  user: { name: string };
   roleLabel: string;
-  alerts: HeaderAlert[];
+  integrations: { name: string; live: boolean }[];
   signOut: () => Promise<void>;
 }) {
-  const breached = alerts.filter((a) => a.health === "breached").length;
-  return (
-    <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center gap-3 bg-header px-4 text-white">
-      <Link href="/home" className="flex items-center gap-2 rounded-md pr-2 outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <span className="grid size-6 place-items-center rounded-md bg-brand text-[11px] font-bold text-white">i</span>
-        <span className="text-sm font-semibold">Income</span>
-        <span className="hidden text-sm text-white/55 sm:inline">CCMS</span>
-      </Link>
-      <span className="hidden h-5 w-px bg-white/15 sm:block" aria-hidden />
-      <span className="hidden text-[13px] text-white/80 sm:block">Case Workspace</span>
+  const live = integrations.filter((i) => i.live).length;
+  const search = useRef<HTMLInputElement>(null);
+  const [paletteOpen, setPaletteOpen] = useCommandShortcut();
 
-      <form action="/search" className="mx-auto flex w-full max-w-lg items-center" role="search">
+  // "/" focuses search unless the user is already typing somewhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey || t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return;
+      e.preventDefault();
+      search.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function leave() {
+    try {
+      sessionStorage.removeItem(TABS_KEY);
+    } catch {
+      // Nothing stored.
+    }
+    void signOut();
+  }
+
+  return (
+    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-3 overflow-y-auto border-r bg-sidebar p-2 md:flex">
+      <Link href="/home" className="flex h-9 items-center gap-2 rounded-md px-2 outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Image src="/neutrinos-logo.png" alt="Neutrinos" width={306} height={53} priority className="h-[18px] w-auto" />
+        <span className="ml-auto text-xs text-muted-foreground">Income</span>
+      </Link>
+
+      <form action="/search" role="search" className="relative px-0.5">
         <label htmlFor="global-search" className="sr-only">
           Search cases
         </label>
-        <div className="relative w-full">
-          <HugeiconsIcon icon={Search01Icon} size={15} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-white/50" aria-hidden />
-          <input
-            id="global-search"
-            name="q"
-            placeholder="Search case number, subject, customer, policy…"
-            className="h-8 w-full rounded-md border border-white/10 bg-white/[0.08] pr-3 pl-8 text-[13px] text-white outline-none placeholder:text-white/45 focus-visible:border-white/25 focus-visible:bg-white/[0.12] focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </div>
+        <Icon icon={Search01Icon} size={14} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <input
+          ref={search}
+          id="global-search"
+          name="q"
+          placeholder="Search cases"
+          className="h-[30px] w-full rounded-md border border-input bg-card pr-8 pl-8 text-sm shadow-control outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        <button
+          type="button"
+          onClick={() => setPaletteOpen(true)}
+          aria-label="Open command menu"
+          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border bg-muted px-1 text-[11px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          ⌘K
+        </button>
       </form>
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} groups={groups} canLogCase={canLogCase} onSignOut={leave} />
+
+      <Nav groups={groups} />
+
+      <div className="mt-auto flex flex-col gap-px">
+        <Popover>
+          <PopoverTrigger className="flex h-[30px] items-center gap-2 rounded-md px-2 text-sm text-foreground/75 outline-none hover:bg-accent/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+            <span className="mx-1 size-2 rounded-full" style={{ backgroundColor: live === integrations.length ? STATUS.good : "#a8a8a4" }} aria-hidden />
+            Connections
+            <span className="tabular ml-auto text-xs text-muted-foreground">
+              {live}/{integrations.length}
+            </span>
+          </PopoverTrigger>
+          <PopoverContent align="start" side="right" className="w-72">
+            <div className="border-b px-4 py-2.5 text-sm font-medium">Platform connections</div>
+            <dl className="flex flex-col gap-2 px-4 py-3 text-sm">
+              {integrations.map((i) => (
+                <div key={i.name} className="flex items-center gap-2">
+                  <span className="size-2 rounded-full" style={{ backgroundColor: i.live ? STATUS.good : "#a8a8a4" }} aria-hidden />
+                  <dt>{i.name}</dt>
+                  <dd className="ml-auto text-muted-foreground">{i.live ? "Connected" : "Local fallback"}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="border-t px-4 py-2.5 text-xs text-muted-foreground">Local fallbacks follow the same contracts until credentials are set.</p>
+          </PopoverContent>
+        </Popover>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex h-10 items-center gap-2 rounded-md px-2 text-left outline-none hover:bg-accent/70 focus-visible:ring-2 focus-visible:ring-ring">
+            <Avatar name={user.name} size="sm" />
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-sm">{user.name}</span>
+              <span className="truncate text-[11px] text-muted-foreground">{roleLabel}</span>
+            </span>
+            <Icon icon={UpDownIcon} size={14} className="ml-auto shrink-0 text-muted-foreground" aria-hidden />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="top">
+            <DropdownMenuLabel>
+              <span className="block text-sm text-foreground">{user.name}</span>
+              {roleLabel}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={leave}>
+              <Icon icon={UserSwitchIcon} aria-hidden />
+              Switch persona
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={leave}>
+              <Icon icon={Logout01Icon} aria-hidden />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </aside>
+  );
+}
+
+/** Top bar: open-case tabs on the left, alerts and the new-case action on the right. */
+export function AppTopBar({ groups, alerts, canLogCase }: { groups: Groups; alerts: HeaderAlert[]; canLogCase: boolean }) {
+  const breached = alerts.filter((a) => a.health === "breached").length;
+  return (
+    <header className="sticky top-0 z-30 flex h-11 shrink-0 items-center gap-1 border-b bg-background pr-3 pl-2">
+      <Popover>
+        <PopoverTrigger aria-label="Menu" className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring md:hidden">
+          <Icon icon={MenuIcon} size={18} aria-hidden />
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-60 p-2">
+          <Nav groups={groups} />
+        </PopoverContent>
+      </Popover>
+
+      <WorkspaceTabs />
 
       <Popover>
         <PopoverTrigger
           aria-label={`SLA alerts: ${alerts.length}`}
-          className="relative grid size-8 place-items-center rounded-md text-white/80 outline-none hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-ring"
+          className="relative ml-auto grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <HugeiconsIcon icon={Notification03Icon} size={18} aria-hidden />
-          {alerts.length > 0 && (
-            <span className={`tabular absolute -top-0.5 -right-0.5 grid min-w-4 place-items-center rounded-full px-1 text-[10px] font-semibold text-white ${breached ? "bg-[#d03b3b]" : "bg-[#c98500]"}`}>
-              {alerts.length}
-            </span>
-          )}
+          <Icon icon={Notification03Icon} size={17} aria-hidden />
+          {alerts.length > 0 && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full" style={{ backgroundColor: breached ? STATUS.critical : STATUS.warning }} aria-hidden />}
         </PopoverTrigger>
         <PopoverContent className="w-96">
-          <div className="flex items-center justify-between border-b border-black/[0.06] px-4 py-3 dark:border-white/10">
-            <span className="text-sm font-semibold">SLA alerts</span>
+          <div className="flex items-center justify-between border-b px-4 py-2.5">
+            <span className="text-sm font-medium">SLA alerts</span>
             <span className="text-xs text-muted-foreground">
               {breached} breached · {alerts.length - breached} near breach
             </span>
@@ -82,9 +191,9 @@ export function AppHeader({
                 return (
                   <li key={a.number}>
                     <Link href={`/cases/${a.number}`} className="flex items-start gap-3 px-4 py-2.5 outline-none hover:bg-accent focus-visible:bg-accent">
-                      <HugeiconsIcon icon={Alert02Icon} size={16} color={m.color} className="mt-0.5 shrink-0" aria-hidden />
+                      <Icon icon={Alert02Icon} size={16} color={m.color} className="mt-0.5 shrink-0" aria-hidden />
                       <span className="flex min-w-0 flex-col gap-0.5">
-                        <span className="truncate text-[13px] font-medium">{a.subject}</span>
+                        <span className="truncate text-sm">{a.subject}</span>
                         <span className="tabular text-xs text-muted-foreground">
                           {a.number} · {a.kind} SLA {m.label.toLowerCase()} · {formatDuration(a.remainingMs)}
                         </span>
@@ -98,31 +207,15 @@ export function AppHeader({
         </PopoverContent>
       </Popover>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-2 rounded-md py-1 pr-1.5 pl-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring">
-          <Avatar name={user.name} size="sm" />
-          <span className="hidden flex-col items-start leading-tight md:flex">
-            <span className="text-[12px] font-medium">{user.name}</span>
-            <span className="text-[11px] text-white/55">{roleLabel}</span>
-          </span>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="text-white/60" aria-hidden />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>
-            <span className="block text-[13px] font-medium text-foreground">{user.name}</span>
-            {roleLabel}
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => void signOut()}>
-            <HugeiconsIcon icon={UserSwitchIcon} aria-hidden />
-            Switch persona
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => void signOut()}>
-            <HugeiconsIcon icon={Logout01Icon} aria-hidden />
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {canLogCase && (
+        <Link
+          href="/intake"
+          className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-[#4d5058] bg-primary px-2.5 text-xs font-medium text-primary-foreground shadow-control outline-none hover:bg-[#2c2e33] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+        >
+          <Icon icon={Add01Icon} size={13} aria-hidden />
+          New case
+        </Link>
+      )}
     </header>
   );
 }

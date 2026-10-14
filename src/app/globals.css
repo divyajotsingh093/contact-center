@@ -3,38 +3,41 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Neutral base, one accent (Income orange) used sparingly for brand and focus. */
+/*
+ * Quiet, near-monochrome workspace in the manner of Lightfield and Notion: white
+ * surfaces, hairline borders, ink at three strengths, a black primary action.
+ * Colour is reserved for data that needs it (SLA state, priority, confidence).
+ */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.52 0 0);
-  --accent: oklch(0.965 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --brand: oklch(0.68 0.19 45);
-  --brand-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --radius: 0.625rem;
+  --background: #ffffff;
+  --foreground: #242629;
+  --card: #ffffff;
+  --card-foreground: #242629;
+  --popover: #ffffff;
+  --popover-foreground: #242629;
+  --primary: #1f2024;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eaed;
+  --secondary-foreground: #242629;
+  --muted: #f7f8f9;
+  --muted-foreground: #696c72;
+  --accent: #eff0f2;
+  --accent-foreground: #242629;
+  --brand: #0066ff;
+  --destructive: #c4382f;
   --warning: oklch(0.75 0.15 75);
   --success: oklch(0.6 0.13 155);
   --info: oklch(0.6 0.12 245);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.68 0.19 45 / 0.6);
-  --sidebar: oklch(0.985 0 0);
-  --page: #f6f6f4;
-  --header: #111110;
-  --series-1: #2a78d6;
+  --border: #ebecef;
+  --input: #d5d8dd;
+  --ring: #0066ff;
+  --sidebar: #f5f6f7;
+  --page: #fbfbfc;
+  --series-1: #3d4047;
 
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Motion values from transitions.dev: one smooth-out curve, short durations. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
@@ -45,27 +48,36 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: #ededed;
+  --primary-foreground: #171717;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
-  --brand: oklch(0.72 0.17 48);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --input: oklch(1 0 0 / 30%);
+  --ring: #ededed;
   --sidebar: oklch(0.175 0 0);
   --page: #0d0d0d;
-  --header: #0a0a0a;
   --series-1: #3987e5;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Three-zone record layout (form, activity, context) starts here. */
+  --breakpoint-wide: 85rem;
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-data), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-brand: var(--brand);
+  /* Surfaces sit on a 1px ring and a faint layered shadow, as Attio does, instead of a hard border. */
+  --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.04);
+  --shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.06), 0 2px 6px rgb(0 0 0 / 0.05), 0 4px 42px rgb(0 0 0 / 0.06);
+  --shadow-control: 0 1px 1px rgb(11 13 24 / 0.05);
+  /* Interface text is 13px, as in the references. */
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -84,8 +96,6 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-brand: var(--brand);
-  --color-brand-foreground: var(--brand-foreground);
   --color-destructive: var(--destructive);
   --color-warning: var(--warning);
   --color-success: var(--success);
@@ -95,26 +105,40 @@
   --color-ring: var(--ring);
   --color-sidebar: var(--sidebar);
   --color-page: var(--page);
-  --color-header: var(--header);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
+  button:not(:disabled),
+  [role="tab"]:not(:disabled),
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
   }
+  /* Attio's setup: Inter at medium weight with the ss03 set. */
+  body {
+    @apply bg-background text-foreground font-sans font-medium antialiased;
+    letter-spacing: -0.01em;
+    font-feature-settings: "ss03";
+  }
+  /* Optical sizing stays automatic: Inter switches towards its Display cut as headings grow. */
   h1, h2, h3 {
+    font-weight: 600;
+    letter-spacing: -0.012em;
     text-wrap: balance;
+  }
+  h1 {
+    letter-spacing: -0.02em;
   }
   p {
     text-wrap: pretty;
   }
 }
 
+/* Figures, dates and record numbers: brand face with aligned digits (mono is kept for raw source text only). */
 .tabular {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -125,7 +149,7 @@
   }
 }
 .pressable {
-  transition: transform 120ms var(--ease-out), background-color 150ms ease, color 150ms ease;
+  transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -133,5 +157,21 @@
   .pressable:active {
     transform: none;
     transition: background-color 150ms ease, color 150ms ease;
+  }
+}
+
+/* Content reveal after the route skeleton: fade with a 2px blur, then settle. */
+.reveal {
+  animation: reveal 400ms var(--ease-out) both;
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
   }
 }

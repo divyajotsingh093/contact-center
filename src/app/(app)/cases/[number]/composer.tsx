@@ -1,8 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { LockIcon, Mail01Icon, SentIcon } from "@hugeicons/core-free-icons";
+import { Icon } from "@/components/ccms/icons";
+import { LockIcon, Mail01Icon, SentIcon } from "@/components/ccms/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,11 +44,11 @@ export function Composer({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border bg-card shadow-xs",
-        mode === "note" ? "border-[#e9d9a8] dark:border-[#5a4a1f]" : "border-black/[0.1] dark:border-white/15",
+        "flex flex-col rounded-lg border bg-card",
+        mode === "note" ? "border-[#e9d9a8] dark:border-[#5a4a1f]" : "border-border",
       )}
     >
-      <div role="tablist" aria-label="Message type" className="flex items-center gap-1 border-b border-black/[0.06] px-2 pt-2 dark:border-white/[0.08]">
+      <div role="tablist" aria-label="Message type" className="flex items-center gap-1 border-b px-2 pt-1.5">
         {(
           [
             { key: "note", label: "Work note", icon: LockIcon, hint: "Internal, team only" },
@@ -64,11 +64,11 @@ export function Composer({
             onClick={() => setMode(t.key)}
             title={t.hint}
             className={cn(
-              "-mb-px flex items-center gap-1.5 border-b-2 px-2.5 pb-2 text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
+              "-mb-px flex items-center gap-1.5 border-b-2 px-2.5 pb-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
               mode === t.key ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            <HugeiconsIcon icon={t.icon} size={14} aria-hidden />
+            <Icon icon={t.icon} size={14} aria-hidden />
             {t.label}
           </button>
         ))}
@@ -83,7 +83,7 @@ export function Composer({
         {mode === "email" && (
           <div className="flex items-center gap-2">
             <span className="w-14 shrink-0 text-xs text-muted-foreground">To</span>
-            <span className="truncate text-[13px]">{customerEmail}</span>
+            <span className="truncate text-sm">{customerEmail}</span>
           </div>
         )}
         {mode === "email" && (
@@ -110,7 +110,7 @@ export function Composer({
             {mode === "note" ? "Visible to staff with access to this case." : "Logged in the Communication Module and sent by the platform."}
           </span>
           <Button type="submit" size="sm" disabled={pending || !body.trim()}>
-            <HugeiconsIcon icon={mode === "note" ? LockIcon : SentIcon} aria-hidden />
+            <Icon icon={mode === "note" ? LockIcon : SentIcon} aria-hidden />
             {mode === "note" ? "Post note" : "Send email"}
           </Button>
         </div>

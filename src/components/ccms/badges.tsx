@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert02Icon, Clock01Icon, EyeIcon, Flag02Icon, LockIcon, Shield01Icon, StarIcon } from "@hugeicons/core-free-icons";
+import { Icon } from "@/components/ccms/icons";
+import { Alert02Icon, Clock01Icon, EyeIcon, Flag02Icon, LockIcon, Shield01Icon, StarIcon } from "@/components/ccms/icons";
 import { Badge } from "@/components/ui/badge";
 import type { ClockHealth } from "@/ccms/sla";
 import { formatDuration, titleCase } from "./format";
@@ -19,22 +19,15 @@ export function SlaBadge({ health, remainingMs, kind }: { health: ClockHealth; r
   const showTime = remainingMs !== undefined && (health === "on_track" || health === "near_breach" || health === "breached");
   return (
     <Badge variant={s.variant} title={kind ? `${titleCase(kind)} SLA` : undefined}>
-      <HugeiconsIcon icon={Clock01Icon} aria-hidden />
+      <Icon icon={Clock01Icon} aria-hidden />
       {s.label}
       {showTime && <span className="tabular opacity-80">· {formatDuration(remainingMs!)}</span>}
     </Badge>
   );
 }
 
-const NATURE_VARIANT: Record<string, "danger" | "info" | "secondary" | "warning"> = {
-  complaint: "danger",
-  appeal: "warning",
-  enquiry: "info",
-  feedback: "secondary",
-};
-
 export function NatureBadge({ nature }: { nature: string | null }) {
-  return <Badge variant={NATURE_VARIANT[nature ?? ""] ?? "secondary"}>{titleCase(nature ?? "unassessed")}</Badge>;
+  return <Badge variant="outline">{titleCase(nature ?? "unassessed")}</Badge>;
 }
 
 export function PriorityBadge({ priority }: { priority: string }) {
@@ -55,33 +48,33 @@ export function CaseFlags({
   return (
     <div className="flex flex-wrap gap-1">
       {c.significant && (
-        <Badge variant="danger">
-          <HugeiconsIcon icon={Flag02Icon} aria-hidden />
+        <Badge variant="outline">
+          <Icon icon={Flag02Icon} className="text-destructive" aria-hidden />
           Significant
         </Badge>
       )}
       {c.vulnerable && (
-        <Badge variant="info">
-          <HugeiconsIcon icon={Shield01Icon} aria-hidden />
+        <Badge variant="outline">
+          <Icon icon={Shield01Icon} aria-hidden />
           Vulnerable
         </Badge>
       )}
       {c.vip && (
-        <Badge variant="brand">
-          <HugeiconsIcon icon={StarIcon} aria-hidden />
+        <Badge variant="outline">
+          <Icon icon={StarIcon} aria-hidden />
           VVIP
         </Badge>
       )}
       {c.confidential && (
         <Badge variant="outline">
-          <HugeiconsIcon icon={LockIcon} aria-hidden />
+          <Icon icon={LockIcon} aria-hidden />
           Confidential
         </Badge>
       )}
-      {c.fidrec && <Badge variant="warning">FIDREC</Badge>}
+      {c.fidrec && <Badge variant="outline">FIDREC</Badge>}
       {c.regulatoryFlag && c.regulatoryFlag !== "none" && (
-        <Badge variant="warning">
-          <HugeiconsIcon icon={Alert02Icon} aria-hidden />
+        <Badge variant="outline">
+          <Icon icon={Alert02Icon} aria-hidden />
           {c.regulatoryFlag}
         </Badge>
       )}
@@ -93,7 +86,7 @@ export function CaseFlags({
 export function MaskedNotice() {
   return (
     <Badge variant="outline" className="text-muted-foreground">
-      <HugeiconsIcon icon={EyeIcon} aria-hidden />
+      <Icon icon={EyeIcon} aria-hidden />
       Masked
     </Badge>
   );
@@ -101,9 +94,8 @@ export function MaskedNotice() {
 
 export function SourceBadge({ source }: { source: string }) {
   const label = source === "kamios" ? "Kamios" : source === "reels" ? "Reels" : "Local fallback";
-  const variant = source === "local" ? "outline" : "brand";
   return (
-    <Badge variant={variant} title={source === "local" ? "Computed by the local stand-in until the platform is connected" : undefined}>
+    <Badge variant={source === "local" ? "outline" : "secondary"} title={source === "local" ? "Computed by the local stand-in until the platform is connected" : undefined}>
       {label}
     </Badge>
   );

@@ -15,19 +15,19 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return <tbody data-slot="table-body" className={cn("[&_tr:last-child]:border-0", className)} {...props} />;
 }
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
-  return <tr data-slot="table-row" className={cn("border-b border-black/[0.06] transition-colors hover:bg-muted/50 dark:border-white/[0.08]", className)} {...props} />;
+  return <tr data-slot="table-row" className={cn("border-b transition-colors duration-150 hover:bg-muted", className)} {...props} />;
 }
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
-      className={cn("h-9 whitespace-nowrap px-3 text-left align-middle text-xs font-medium text-muted-foreground", className)}
+      className={cn("h-9 whitespace-nowrap px-2.5 text-left align-middle text-xs font-normal text-muted-foreground", className)}
       {...props}
     />
   );
 }
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return <td data-slot="table-cell" className={cn("px-3 py-2.5 align-middle", className)} {...props} />;
+  return <td data-slot="table-cell" className={cn("h-10 px-2.5 py-1 align-middle text-sm", className)} {...props} />;
 }
 
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };

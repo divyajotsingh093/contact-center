@@ -15,6 +15,11 @@ export function formatDateTime(d: Date | string | null | undefined): string {
   return new Date(d).toLocaleString("en-SG", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: SGT });
 }
 
+/** Day and month only, for dense lists. */
+export function formatDay(d: Date | string): string {
+  return new Date(d).toLocaleDateString("en-SG", { day: "2-digit", month: "short", timeZone: SGT });
+}
+
 export function formatDate(d: Date | string | null | undefined): string {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric", timeZone: SGT });

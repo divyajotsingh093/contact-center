@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Icon } from "@/components/ccms/icons";
 import {
   AiBrain01Icon,
   ArrowRight01Icon,
@@ -15,7 +15,7 @@ import {
   Shield01Icon,
   SmartPhone01Icon,
   StarIcon,
-} from "@hugeicons/core-free-icons";
+} from "@/components/ccms/icons";
 import { currentActor, ForbiddenError } from "@/ccms/session";
 import { getCase360, slaView } from "@/ccms/queries";
 import { SOURCE_LABELS, STAGE_LABELS, type Source, type Stage } from "@/ccms/constants";
@@ -28,12 +28,18 @@ import { Avatar, Person } from "@/components/ccms/avatar";
 import { PriorityCell } from "@/components/ccms/case-table";
 import { SlaMeter } from "@/components/ccms/sla-meter";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { AssessmentPanel } from "./assessment-panel";
 import { Composer } from "./composer";
+import { ConfirmAssessmentButton } from "./confirm-button";
 import { ResendButton } from "./resend-button";
+import { OpenCaseTab } from "@/components/ccms/workspace-tabs";
+import { db } from "@/lib/db";
+import { SubTicketsPanel } from "./subtickets-panel";
+import { ActivityTimeline, type TimelineEvent } from "@/components/ccms/activity-timeline";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 export const dynamic = "force-dynamic";
 
@@ -42,26 +48,26 @@ function Field({ label, value, mono }: { label: string; value: React.ReactNode; 
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={cn("truncate text-[13px]", mono && "tabular", empty && "text-muted-foreground")}>{empty ? "—" : value}</dd>
+      <dd className={cn("truncate text-sm", mono && "tabular", empty && "text-muted-foreground")}>{empty ? "—" : value}</dd>
     </div>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-black/[0.08] bg-card p-4 shadow-xs dark:border-white/10">
-      <h3 className="text-[13px] font-semibold">{title}</h3>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">{children}</dl>
+    <section className="overflow-hidden rounded-lg bg-card shadow-card">
+      <h3 className="border-b px-4 py-2 text-xs font-medium text-muted-foreground">{title}</h3>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 p-4 sm:grid-cols-3">{children}</dl>
     </section>
   );
 }
 
-/** One cell of the highlighted-values strip under the record header. */
-function Highlight({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+/** One label / value row in the property panel. */
+function Prop({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1 px-4 py-3", className)}>
-      <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
-      <div className="min-w-0 text-[13px] font-medium">{children}</div>
+    <div className="grid min-h-8 grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-2">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 truncate text-sm">{children}</dd>
     </div>
   );
 }
@@ -80,11 +86,20 @@ export default async function Case360Page({ params }: { params: Promise<{ number
   } catch (e) {
     if (e instanceof ForbiddenError) {
       return (
-        <div className="flex flex-col items-center gap-2 px-6 py-24 text-center">
-          <HugeiconsIcon icon={LockIcon} size={24} className="text-muted-foreground" aria-hidden />
-          <p className="text-sm font-medium">You don&apos;t have access to this case</p>
-          <p className="text-sm text-muted-foreground">Access follows BSD section 7. Ask the team lead if you need it.</p>
-        </div>
+        <Empty className="py-24">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Icon icon={LockIcon} />
+            </EmptyMedia>
+            <EmptyTitle>You don&apos;t have access to this case</EmptyTitle>
+            <EmptyDescription>Access follows BSD section 7. Ask your team lead if you need it.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/inbox">Back to cases</Link>
+            </Button>
+          </EmptyContent>
+        </Empty>
       );
     }
     throw e;
@@ -93,8 +108,6 @@ export default async function Case360Page({ params }: { params: Promise<{ number
   const { case: c, masked, previous, can, authors } = data;
   const now = new Date();
   const eds = (c.extra as { eds?: EdsAttributes } | null)?.eds;
-  const resolution = c.slaClocks.find((s) => s.kind === "resolution");
-  const resolutionView = resolution ? slaView(resolution, now) : null;
   const links = [
     ...c.linksFrom.map((l) => ({ kind: l.kind, reason: l.reason, other: l.toCase })),
     ...c.linksTo.map((l) => ({ kind: l.kind, reason: l.reason, other: l.fromCase })),
@@ -119,158 +132,65 @@ export default async function Case360Page({ params }: { params: Promise<{ number
     ...c.communications.map((m) => ({ type: "comm" as const, at: m.createdAt, m })),
   ].sort((a, b) => b.at.getTime() - a.at.getTime());
 
+  const awaitingAssessment = ["intake", "acknowledgement", "assessment"].includes(c.stage);
+  const openSubTickets = c.subTickets.filter((t) => t.status !== "closed").length;
+  const bus = can.edit ? await db.businessUnit.findMany({ where: { code: { not: "CE" } }, select: { id: true, name: true }, orderBy: { name: "asc" } }) : [];
+
   return (
     <div className="flex flex-col">
+      <OpenCaseTab number={c.number} />
       {/* Record header */}
-      <div className="border-b border-black/[0.06] bg-card dark:border-white/[0.08]">
-        <div className="flex flex-col gap-3 px-6 pt-4 pb-3">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Link href="/inbox" className="hover:text-foreground hover:underline">
-              My cases
-            </Link>
-            <HugeiconsIcon icon={ArrowRight01Icon} size={12} aria-hidden />
-            <span className="tabular text-foreground">{c.number}</span>
-          </nav>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <h1 className="text-xl font-semibold">{c.subject}</h1>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <NatureBadge nature={c.nature} />
-                <CaseFlags c={c} />
-                {masked && (
-                  <Badge variant="outline">
-                    <HugeiconsIcon icon={LockIcon} aria-hidden />
-                    Masked for your role · view logged
-                  </Badge>
-                )}
-              </div>
+      <div className="border-b bg-card">
+        <div className="flex flex-wrap items-start justify-between gap-3 px-6 pt-4 pb-4">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Link href="/inbox" className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+                Cases
+              </Link>
+              <Icon icon={ArrowRight01Icon} size={12} aria-hidden />
+              <span className="tabular text-foreground">{c.number}</span>
+            </nav>
+            <h1 className="text-xl leading-snug font-semibold">{c.subject}</h1>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <NatureBadge nature={c.nature} />
+              <CaseFlags c={c} />
+              {masked && (
+                <Badge variant="outline">
+                  <Icon icon={LockIcon} aria-hidden />
+                  Masked for your role · view logged
+                </Badge>
+              )}
             </div>
           </div>
+          {can.edit && awaitingAssessment && !masked && <ConfirmAssessmentButton number={c.number} caseId={c.id} />}
         </div>
-        <div className="grid grid-cols-2 divide-black/[0.06] border-t border-black/[0.06] sm:grid-cols-4 sm:divide-x xl:grid-cols-7 dark:divide-white/[0.08] dark:border-white/[0.08]">
-          <Highlight label="Priority">
-            <PriorityCell priority={c.priority} />
-          </Highlight>
-          <Highlight label="Stage">{c.status === "closed" ? "Closed" : (STAGE_LABELS[c.stage as Stage] ?? c.stage)}</Highlight>
-          <Highlight label="Channel">
-            <span className="truncate">{SOURCE_LABELS[c.source as Source] ?? c.source}</span>
-          </Highlight>
-          <Highlight label="Assigned to">
-            <Person name={c.caseManager?.name} size="xs" />
-          </Highlight>
-          <Highlight label="Customer">
-            <span className="flex items-center gap-1.5 truncate">
-              {c.complainantName ?? "Unknown"}
-              {eds?.customerGrade && !masked && <span className="font-normal text-muted-foreground">· {eds.customerGrade}</span>}
-            </span>
-          </Highlight>
-          <Highlight label="Target resolution">
-            <span className="tabular">{formatDate(c.targetResolutionAt)}</span>
-          </Highlight>
-          <Highlight label="Resolution SLA" className="col-span-2 sm:col-span-2 xl:col-span-1">
-            {resolutionView ? <SlaMeter health={resolutionView.health} percent={resolutionView.percent} remainingMs={resolutionView.remainingMs} /> : "—"}
-          </Highlight>
-        </div>
-        <div className="border-t border-black/[0.06] px-6 py-3 dark:border-white/[0.08]">
+        <div className="border-t px-6 py-3">
           <StageTracker stage={c.stage} nature={c.nature} />
         </div>
       </div>
 
-      <div className="grid gap-5 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <Tabs defaultValue={["intake", "acknowledgement", "assessment"].includes(c.stage) && can.edit ? "assessment" : "activity"}>
+      {/* Record (tabs | activity) beside a flush property panel; the panel drops below under the wide breakpoint. */}
+      <div className="flex flex-1 flex-col wide:flex-row">
+      <div className="grid min-w-0 flex-1 items-start gap-6 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <Tabs defaultValue={actor.roles.includes("bu_staff") ? "subtickets" : awaitingAssessment && can.edit ? "assessment" : "details"}>
           <TabsList>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="assessment">
               Assessment
               {c.assessments.some((a) => a.status === "proposed") && <span className="size-1.5 rounded-full bg-brand" aria-label="awaiting review" />}
+            </TabsTrigger>
+            <TabsTrigger value="subtickets">
+              Sub-tickets {openSubTickets > 0 && <span className="tabular text-xs text-muted-foreground">{openSubTickets}</span>}
             </TabsTrigger>
             <TabsTrigger value="communications">
               Communications <span className="tabular text-xs text-muted-foreground">{c.communications.length}</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="activity" className="flex flex-col gap-4">
-            {(can.edit || can.reallocate) && !masked && (
-              <Composer number={c.number} caseId={c.id} canEmail={can.edit} customerEmail={c.complainantEmail} defaultSubject={`Re: ${c.subject} (${c.number})`} />
-            )}
-            {activity.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">{masked ? "Activity is hidden for your role." : "No activity yet."}</p>
-            ) : (
-              <ol className="relative flex flex-col gap-4 before:absolute before:top-2 before:bottom-2 before:left-[15px] before:w-px before:bg-black/[0.08] dark:before:bg-white/10">
-                {activity.map((item) => {
-                  if (item.type === "note") {
-                    const n = item.n;
-                    const author = n.authorId ? authors[n.authorId] : null;
-                    const system = n.kind === "system";
-                    return (
-                      <li key={`n-${n.id}`} className="relative flex gap-3">
-                        {author ? (
-                          <Avatar name={author} size="md" className="relative ring-4 ring-page" />
-                        ) : (
-                          <span className="relative grid size-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground ring-4 ring-page">
-                            <HugeiconsIcon icon={AiBrain01Icon} size={15} aria-hidden />
-                          </span>
-                        )}
-                        <div
-                          className={cn(
-                            "flex min-w-0 flex-1 flex-col gap-1 rounded-xl border px-3.5 py-2.5",
-                            system ? "border-transparent bg-transparent px-0" : "border-[#efe3bd] bg-[#fdf9ec] dark:border-[#4d4223] dark:bg-[#24210f]",
-                          )}
-                        >
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="font-medium text-foreground">{author ?? "System"}</span>
-                            {!system && (
-                              <span className="flex items-center gap-1 text-muted-foreground">
-                                <HugeiconsIcon icon={LockIcon} size={11} aria-hidden />
-                                Work note
-                              </span>
-                            )}
-                            <span className="tabular ml-auto text-muted-foreground">{formatDateTime(n.createdAt)}</span>
-                          </div>
-                          <p className={cn("text-[13px] whitespace-pre-wrap", system && "text-muted-foreground")}>{n.body}</p>
-                        </div>
-                      </li>
-                    );
-                  }
-                  const m = item.m;
-                  const inbound = m.direction === "inbound";
-                  return (
-                    <li key={`m-${m.id}`} className="relative flex gap-3">
-                      <span className={cn("relative grid size-8 shrink-0 place-items-center rounded-full ring-4 ring-page", inbound ? "bg-[#dbe8f8] text-[#1c5cab]" : "bg-muted text-muted-foreground")}>
-                        <HugeiconsIcon icon={inbound ? MailReceive01Icon : (CHANNEL_ICON[m.channel as keyof typeof CHANNEL_ICON] ?? SentIcon)} size={15} aria-hidden />
-                      </span>
-                      <div className="flex min-w-0 flex-1 flex-col gap-1.5 rounded-xl border border-black/[0.08] bg-card px-3.5 py-2.5 shadow-xs dark:border-white/10">
-                        <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                          <span className="font-medium">{inbound ? (c.complainantName ?? "Customer") : m.authorId ? authors[m.authorId] : "CCMS"}</span>
-                          <span className="text-muted-foreground">
-                            {inbound ? "replied by" : "sent"} {m.channel}
-                            {m.purpose !== "update" && ` · ${titleCase(m.purpose)}`}
-                          </span>
-                          <Badge variant={m.status === "failed" ? "danger" : m.status === "delivered" ? "success" : "outline"}>{titleCase(m.status)}</Badge>
-                          {m.channel === "sms" && <span className="text-muted-foreground">Simulated</span>}
-                          <span className="tabular ml-auto text-muted-foreground">{formatDateTime(m.createdAt)}</span>
-                        </div>
-                        {m.subject && <p className="text-[13px] font-medium">{m.subject}</p>}
-                        <p className="line-clamp-4 text-[13px] whitespace-pre-wrap text-muted-foreground">{m.body}</p>
-                        {m.status === "failed" && can.edit && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-destructive">{m.error ?? "Send failed"}</span>
-                            <ResendButton number={c.number} communicationId={m.id} />
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </TabsContent>
-
-          <TabsContent value="details" className="flex flex-col gap-4">
-            <section className="flex flex-col gap-2 rounded-xl border border-black/[0.08] bg-card p-4 shadow-xs dark:border-white/10">
-              <h3 className="text-[13px] font-semibold">Description</h3>
-              <p className="max-w-[75ch] text-[13px] leading-relaxed whitespace-pre-wrap">{c.description}</p>
+          <TabsContent value="details" className="flex flex-col gap-3">
+            <section className="overflow-hidden rounded-lg bg-card shadow-card">
+              <h3 className="border-b px-4 py-2 text-xs font-medium text-muted-foreground">Description</h3>
+              <p className="max-w-[75ch] p-4 text-sm leading-relaxed whitespace-pre-wrap">{c.description}</p>
             </section>
             <Section title="Case information">
               <Field label="Nature" value={titleCase(c.nature)} />
@@ -326,17 +246,38 @@ export default async function Case360Page({ params }: { params: Promise<{ number
             />
           </TabsContent>
 
+          <TabsContent value="subtickets">
+            <SubTicketsPanel
+              number={c.number}
+              caseId={c.id}
+              canManage={can.edit}
+              canRaise={can.edit && ["investigation", "resolution"].includes(c.stage)}
+              viewerBuId={actor.roles.includes("bu_staff") ? actor.buId : null}
+              bus={bus}
+              tickets={c.subTickets.map((t) => ({
+                id: t.id,
+                number: t.number,
+                buId: t.buId,
+                buName: t.bu.name,
+                status: t.status,
+                dueAt: t.dueAt.toISOString(),
+                assignee: t.assignee?.name ?? null,
+                messages: t.messages.map((m) => ({ id: m.id, direction: m.direction, body: m.body, author: m.authorId ? (authors[m.authorId] ?? null) : null, at: m.createdAt.toISOString() })),
+              }))}
+            />
+          </TabsContent>
+
           <TabsContent value="communications" className="flex flex-col gap-2">
             {c.communications.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">No communications yet.</p>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-black/[0.08] bg-card shadow-xs dark:border-white/10">
-                <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.08]">
+              <div className="overflow-hidden rounded-lg bg-card shadow-card">
+                <ul className="divide-y">
                   {c.communications.map((m) => (
-                    <li key={m.id} className="flex items-center gap-3 px-4 py-3">
-                      <HugeiconsIcon icon={m.direction === "inbound" ? MailReceive01Icon : (CHANNEL_ICON[m.channel as keyof typeof CHANNEL_ICON] ?? SentIcon)} size={16} className="shrink-0 text-muted-foreground" aria-hidden />
+                    <li key={m.id} className="flex items-center gap-3 px-4 py-2">
+                      <Icon icon={m.direction === "inbound" ? MailReceive01Icon : (CHANNEL_ICON[m.channel as keyof typeof CHANNEL_ICON] ?? SentIcon)} size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                       <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-[13px] font-medium">{m.subject ?? titleCase(m.purpose)}</span>
+                        <span className="truncate text-sm font-medium">{m.subject ?? titleCase(m.purpose)}</span>
                         <span className="truncate text-xs text-muted-foreground">
                           {m.direction === "inbound" ? "From" : "To"} {m.to ?? "—"} · {titleCase(m.purpose)}
                         </span>
@@ -351,41 +292,119 @@ export default async function Case360Page({ params }: { params: Promise<{ number
           </TabsContent>
         </Tabs>
 
-        {/* Contextual side panel */}
-        <aside className="flex flex-col gap-4">
+        <section aria-label="Activity" className="flex min-w-0 flex-col gap-3">
+          <h2 className="flex h-9 items-center border-b text-sm font-medium">Activity</h2>
+            {(can.edit || can.reallocate) && !masked && (
+              <Composer number={c.number} caseId={c.id} canEmail={can.edit} customerEmail={c.complainantEmail} defaultSubject={`Re: ${c.subject} (${c.number})`} />
+            )}
+            {activity.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">{masked ? "Activity is hidden for your role." : "No activity yet."}</p>
+            ) : (
+              <ActivityTimeline
+                now={now}
+                events={activity.map((item): TimelineEvent => {
+                  if (item.type === "note") {
+                    const n = item.n;
+                    const system = n.kind === "system";
+                    return {
+                      id: `n-${n.id}`,
+                      at: n.createdAt,
+                      actor: n.authorId ? (authors[n.authorId] ?? null) : null,
+                      icon: system ? AiBrain01Icon : LockIcon,
+                      action: system ? undefined : "added a work note",
+                      body: system ? (
+                        <p className="text-sm whitespace-pre-wrap text-muted-foreground">{n.body}</p>
+                      ) : (
+                        <p className="rounded-lg border border-[#efe3bd] bg-[#fdf9ec] px-3 py-2 text-sm whitespace-pre-wrap dark:border-[#4d4223] dark:bg-[#24210f]">{n.body}</p>
+                      ),
+                    };
+                  }
+                  const m = item.m;
+                  const inbound = m.direction === "inbound";
+                  return {
+                    id: `m-${m.id}`,
+                    at: m.createdAt,
+                    actor: inbound ? (c.complainantName ?? "Customer") : m.authorId ? (authors[m.authorId] ?? "CCMS") : "CCMS",
+                    icon: inbound ? MailReceive01Icon : (CHANNEL_ICON[m.channel as keyof typeof CHANNEL_ICON] ?? SentIcon),
+                    action: `${inbound ? "replied by" : "sent"} ${m.channel}${m.purpose !== "update" ? ` · ${titleCase(m.purpose)}` : ""}`,
+                    body: (
+                      <div className="flex flex-col gap-1.5 rounded-lg bg-card px-3 py-2.5 shadow-card">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {m.subject && <span className="min-w-0 flex-1 truncate text-sm text-foreground">{m.subject}</span>}
+                          <Badge variant={m.status === "failed" ? "danger" : m.status === "delivered" ? "success" : "outline"}>{titleCase(m.status)}</Badge>
+                          {m.channel === "sms" && <span className="text-xs text-muted-foreground">Simulated</span>}
+                        </div>
+                        <p className="line-clamp-3 text-sm whitespace-pre-wrap text-muted-foreground">{m.body}</p>
+                        {m.status === "failed" && can.edit && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-destructive">{m.error ?? "Send failed"}</span>
+                            <ResendButton number={c.number} communicationId={m.id} />
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  };
+                })}
+              />
+            )}
+          </section>
+      </div>
+
+        {/* Property panel */}
+        <aside aria-label="Case properties" className="border-t bg-background wide:w-80 wide:shrink-0 wide:border-t-0 wide:border-l">
+          <section className="border-b px-5 py-4">
+            <h3 className="mb-2 text-xs font-medium text-muted-foreground">Details</h3>
+            <dl className="flex flex-col">
+              <Prop label="Priority">
+                <PriorityCell priority={c.priority} />
+              </Prop>
+              <Prop label="Stage">{c.status === "closed" ? "Closed" : (STAGE_LABELS[c.stage as Stage] ?? c.stage)}</Prop>
+              <Prop label="Channel">{SOURCE_LABELS[c.source as Source] ?? c.source}</Prop>
+              <Prop label="Assigned to">
+                <Person name={c.caseManager?.name} size="xs" />
+              </Prop>
+              <Prop label="Team">{c.team?.name ?? "—"}</Prop>
+              <Prop label="Target date">
+                <span className="tabular">{formatDate(c.targetResolutionAt)}</span>
+              </Prop>
+              <Prop label="Received">
+                <span className="tabular">{formatDateTime(c.receivedAt)}</span>
+              </Prop>
+            </dl>
+          </section>
           {summary && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HugeiconsIcon icon={AiBrain01Icon} size={15} aria-hidden />
+            <section className="border-b px-5 py-4 last:border-b-0">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Icon icon={AiBrain01Icon} size={15} aria-hidden />
                   AI summary
-                </CardTitle>
+                </h3>
                 <SourceBadge source={summarySource} />
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <p className="text-[13px] leading-relaxed">{summary.summary}</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <p className="text-sm leading-relaxed">{summary.summary}</p>
                 {summary.keyPoints.length > 0 && (
-                  <ul className="flex list-disc flex-col gap-1 pl-4 text-[13px] text-muted-foreground">
+                  <ul className="flex list-disc flex-col gap-1 pl-4 text-sm text-muted-foreground">
                     {summary.keyPoints.map((p) => (
                       <li key={p}>{p}</li>
                     ))}
                   </ul>
                 )}
-                <div className="rounded-lg bg-muted/60 px-3 py-2 text-[13px]">
+                <div className="rounded-md bg-muted px-3 py-2 text-sm">
                   <span className="text-xs font-medium text-muted-foreground">Suggested next step</span>
                   <p>{summary.suggestedNextStep}</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           )}
 
           {eds && !masked && (
-            <Card>
-              <CardHeader>
+            <section className="border-b px-5 py-4 last:border-b-0">
+              <div className="mb-3 flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-3">
-                  <Avatar name={eds.customerName ?? c.complainantName ?? "Customer"} size="lg" />
+                  <Avatar name={eds.customerName ?? c.complainantName ?? "Customer"} size="md" />
                   <div className="flex min-w-0 flex-col">
-                    <CardTitle className="truncate">{eds.customerName ?? c.complainantName ?? "Unknown customer"}</CardTitle>
+                    <h3 className="truncate text-sm font-medium text-foreground">{eds.customerName ?? c.complainantName ?? "Unknown customer"}</h3>
                     <span className="tabular truncate text-xs text-muted-foreground">
                       {eds.customerNo ?? "Not matched in EDS"}
                       {eds.customerGrade ? ` · ${eds.customerGrade}` : ""}
@@ -393,19 +412,19 @@ export default async function Case360Page({ params }: { params: Promise<{ number
                   </div>
                 </div>
                 <Badge variant="outline">EDS mock</Badge>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
+              </div>
+              <div className="flex flex-col gap-3">
                 {(eds.vulnerable || eds.vip) && (
                   <div className="flex flex-wrap gap-1.5">
                     {eds.vulnerable && (
-                      <Badge variant="info">
-                        <HugeiconsIcon icon={Shield01Icon} aria-hidden />
+                      <Badge variant="outline">
+                        <Icon icon={Shield01Icon} aria-hidden />
                         Vulnerable · {titleCase(eds.vulnerableType ?? "yes")}
                       </Badge>
                     )}
                     {eds.vip && (
-                      <Badge variant="brand">
-                        <HugeiconsIcon icon={StarIcon} aria-hidden />
+                      <Badge variant="outline">
+                        <Icon icon={StarIcon} aria-hidden />
                         VVIP
                       </Badge>
                     )}
@@ -417,41 +436,41 @@ export default async function Case360Page({ params }: { params: Promise<{ number
                   <Field label="Claim" value={eds.claimNo} mono />
                   <Field label="Agent" value={eds.agentCode} mono />
                 </dl>
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>SLA timers</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
+          <section className="border-b px-5 py-4 last:border-b-0">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">SLA timers</h3>
+            </div>
+            <div className="flex flex-col gap-4">
               {c.slaClocks.map((s) => {
                 const v = slaView(s, now);
                 return (
                   <div key={s.id} className="flex flex-col gap-1.5">
                     <div className="flex items-baseline justify-between gap-2">
-                      <span className="text-[13px] font-medium">{titleCase(s.kind)}</span>
+                      <span className="text-sm font-medium">{titleCase(s.kind)}</span>
                       <span className="tabular text-xs text-muted-foreground">due {formatDateTime(s.targetAt)}</span>
                     </div>
                     <SlaMeter health={v.health} percent={v.percent} remainingMs={v.remainingMs} />
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Linked and previous cases</CardTitle>
+          <section className="border-b px-5 py-4 last:border-b-0">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">Linked and previous cases</h3>
               <span className="tabular text-xs text-muted-foreground">{links.length + previous.length}</span>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-1">
+            </div>
+            <div className="flex flex-col gap-1">
               {links.length === 0 && previous.length === 0 && <p className="text-xs text-muted-foreground">No other cases for this customer.</p>}
               {links.map((l) => (
                 <Link key={`${l.kind}-${l.other.id}`} href={`/cases/${l.other.number}`} className="-mx-2 flex flex-col gap-0.5 rounded-md px-2 py-1.5 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
-                  <span className="flex items-center gap-1.5 text-[13px]">
-                    <HugeiconsIcon icon={Link01Icon} size={14} aria-hidden />
+                  <span className="flex items-center gap-1.5 text-sm">
+                    <Icon icon={Link01Icon} size={14} aria-hidden />
                     <span className="tabular">{l.other.number}</span>
                     <Badge variant="outline">{titleCase(l.kind)}</Badge>
                   </span>
@@ -463,35 +482,35 @@ export default async function Case360Page({ params }: { params: Promise<{ number
                 .map((p) => (
                   <Link key={p.id} href={`/cases/${p.number}`} className="-mx-2 flex items-center justify-between gap-2 rounded-md px-2 py-1.5 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
                     <span className="flex min-w-0 flex-col">
-                      <span className="tabular text-[13px]">{p.number}</span>
+                      <span className="tabular text-sm">{p.number}</span>
                       <span className="truncate text-xs text-muted-foreground">{p.subject}</span>
                     </span>
                     <Badge variant="secondary">{titleCase(p.status)}</Badge>
                   </Link>
                 ))}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
           {c.attachments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Documents</CardTitle>
+            <section className="border-b px-5 py-4 last:border-b-0">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">Documents</h3>
                 <span className="tabular text-xs text-muted-foreground">{c.attachments.length}</span>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-1">
+              </div>
+              <div className="flex flex-col gap-1">
                 {c.attachments.map((a) => (
                   <div key={a.id} className="-mx-2 flex items-center gap-2.5 rounded-md px-2 py-1.5">
                     <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
-                      <HugeiconsIcon icon={Attachment01Icon} size={15} aria-hidden />
+                      <Icon icon={Attachment01Icon} size={15} aria-hidden />
                     </span>
                     <span className="flex min-w-0 flex-col">
-                      <span className="truncate text-[13px]">{a.fileName}</span>
+                      <span className="truncate text-sm">{a.fileName}</span>
                       <span className="truncate text-xs text-muted-foreground">{a.mimeType}</span>
                     </span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           )}
         </aside>
       </div>

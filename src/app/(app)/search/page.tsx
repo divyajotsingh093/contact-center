@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon } from "@hugeicons/core-free-icons";
+import { Icon } from "@/components/ccms/icons";
+import { Search01Icon } from "@/components/ccms/icons";
 import { currentActor } from "@/ccms/session";
 import { searchCases } from "@/ccms/queries";
 import { CaseTable } from "@/components/ccms/case-table";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +14,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const q = ((await searchParams).q ?? "").trim();
   const rows = q ? await searchCases(actor, q) : [];
   return (
-    <div className="flex flex-col gap-4 px-6 py-6">
+    <div className="flex flex-col gap-3 px-6 py-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">Search</h1>
+        <h1 className="text-lg font-semibold">Search</h1>
         <p className="text-sm text-muted-foreground">
           {q ? (
             <>
@@ -27,13 +28,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </p>
       </div>
       {q && rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-black/10 bg-card px-6 py-16 text-center dark:border-white/15">
-          <HugeiconsIcon icon={Search01Icon} size={22} className="text-muted-foreground" aria-hidden />
-          <p className="text-sm font-medium">No cases found</p>
-          <p className="text-sm text-muted-foreground">Check the number, or try the customer&apos;s name or policy number.</p>
-        </div>
+        <Empty className="py-20">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Icon icon={Search01Icon} />
+            </EmptyMedia>
+            <EmptyTitle>No cases found</EmptyTitle>
+            <EmptyDescription>Check the number, or try the customer&apos;s name, policy or claim number.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : rows.length > 0 ? (
-        <CaseTable rows={rows} />
+        <div className="-mx-6">
+          <CaseTable rows={rows} />
+        </div>
       ) : null}
     </div>
   );

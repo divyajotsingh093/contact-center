@@ -25,16 +25,16 @@ export function BarList({ data, unit = "", className }: { data: BarDatum[]; unit
         const w = (d.value / max) * 100;
         const row = (
           <>
-            <div className="flex items-baseline justify-between gap-2 text-[13px]">
+            <div className="flex items-baseline justify-between gap-2 text-sm">
               <span className="truncate text-foreground">{d.label}</span>
               <span className="tabular text-muted-foreground">
                 {d.value}
                 {unit}
               </span>
             </div>
-            <div className="h-2 w-full">
+            <div className="h-1.5 w-full rounded-full bg-secondary/60">
               <div
-                className="h-full rounded-r-[4px] transition-[filter] duration-150 group-hover:brightness-90"
+                className="h-full rounded-full transition-[filter] duration-150 group-hover:brightness-90"
                 style={{ width: `${Math.max(w, d.value > 0 ? 1.5 : 0)}%`, backgroundColor: d.color ?? SERIES_1 }}
               />
             </div>
@@ -61,7 +61,7 @@ export function StackedBar({ data, className }: { data: (BarDatum & { color: str
   const total = data.reduce((s, d) => s + d.value, 0);
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-[4px] bg-black/[0.04] dark:bg-white/[0.06]">
+      <div className="flex h-2 w-full gap-[2px] overflow-hidden rounded-full bg-secondary/60">
         {total > 0 &&
           data
             .filter((d) => d.value > 0)
@@ -76,8 +76,8 @@ export function StackedBar({ data, className }: { data: (BarDatum & { color: str
       </div>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
         {data.map((d) => (
-          <li key={d.label} className="flex items-center gap-2 text-[13px]">
-            <span className="size-2.5 shrink-0 rounded-[3px]" style={{ backgroundColor: d.color }} aria-hidden />
+          <li key={d.label} className="flex items-center gap-2 text-sm">
+            <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: d.color }} aria-hidden />
             {d.icon}
             <span className="truncate">{d.label}</span>
             <span className="tabular ml-auto text-muted-foreground">{d.value}</span>
@@ -96,7 +96,7 @@ export function ChartTable({ data, valueLabel = "Count" }: { data: BarDatum[]; v
         <span className="group-open:hidden">Show table</span>
         <span className="hidden group-open:inline">Hide table</span>
       </summary>
-      <table className="mt-2 w-full text-[13px] text-foreground">
+      <table className="mt-2 w-full text-sm text-foreground">
         <thead>
           <tr className="border-b border-black/[0.06] text-left text-xs text-muted-foreground dark:border-white/10">
             <th className="py-1 font-medium">Category</th>

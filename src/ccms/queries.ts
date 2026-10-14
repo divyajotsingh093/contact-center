@@ -108,7 +108,7 @@ const case360Include = {
   notes: { orderBy: { createdAt: "desc" } },
   attachments: true,
   slaClocks: { orderBy: { createdAt: "asc" } },
-  subTickets: { include: { bu: true, assignee: { select: { name: true } } } },
+  subTickets: { include: { bu: true, assignee: { select: { name: true } }, messages: { orderBy: { createdAt: "asc" } } }, orderBy: { createdAt: "desc" } },
 } satisfies Prisma.CaseInclude;
 
 export type Case360 = Prisma.CaseGetPayload<{ include: typeof case360Include }>;
@@ -143,7 +143,9 @@ export async function getCase360(number: string, actor: Actor, context: "case_36
       }
     : c;
 
-  const authorIds = [...new Set([...c.notes.map((n) => n.authorId), ...c.communications.map((m) => m.authorId)].filter(Boolean))] as string[];
+  const authorIds = [
+    ...new Set([...c.notes.map((n) => n.authorId), ...c.communications.map((m) => m.authorId), ...c.subTickets.flatMap((t) => t.messages.map((m) => m.authorId))].filter(Boolean)),
+  ] as string[];
   const authors = Object.fromEntries(
     (await db.user.findMany({ where: { id: { in: authorIds } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]),
   );
@@ -229,6 +231,10 @@ export async function homeData(actor: Actor, now = new Date()) {
     include: { case: { select: { number: true, subject: true } } },
   });
 
+  const noteAuthors = Object.fromEntries(
+    (await db.user.findMany({ where: { id: { in: [...new Set(notes.map((n) => n.authorId).filter(Boolean))] as string[] } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]),
+  );
+
   return {
     kpis,
     byStage: [...byStage.entries()].map(([k, v]) => ({ key: k, value: v })),
@@ -236,7 +242,7 @@ export async function homeData(actor: Actor, now = new Date()) {
     slaHealth,
     intake: intake.map((i) => ({ key: i.source, value: i._count._all })).sort((a, b) => b.value - a.value),
     attention,
-    activity: notes.map((n) => ({ id: n.id, at: n.createdAt, kind: n.kind, body: n.body, number: n.case.number })),
+    activity: notes.map((n) => ({ id: n.id, at: n.createdAt, kind: n.kind, body: n.body, number: n.case.number, author: n.authorId ? (noteAuthors[n.authorId] ?? null) : null })),
   };
 }
 

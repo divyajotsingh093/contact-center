@@ -1,8 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AiBrain01Icon, Attachment01Icon, SentIcon } from "@hugeicons/core-free-icons";
+import { Icon } from "@/components/ccms/icons";
+import { AiBrain01Icon, Attachment01Icon, SentIcon } from "@/components/ccms/icons";
 import type { ExtractedFields } from "@/integrations/kamios";
 import type { Sample } from "@/ccms/demo/samples";
 import { LINES_OF_BUSINESS, NATURES, SOURCE_LABELS, SOURCES, type Source } from "@/ccms/constants";
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { SourceBadge } from "@/components/ccms/badges";
 import { cn } from "@/lib/utils";
 import { extractAction, logCaseAction, type SourceInput } from "./actions";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 type Key = keyof ExtractedFields;
 
@@ -122,7 +123,7 @@ export function CentralisedForm({ samples }: { samples: Sample[] }) {
             <CardTitle>Source</CardTitle>
             <CardDescription>Email, call transcript, letter or screenshot text.</CardDescription>
           </div>
-          <NativeSelect aria-label="Load a demo sample" className="h-8 w-auto max-w-64 text-[13px]" value="" onChange={(e) => loadSample(e.target.value)}>
+          <NativeSelect aria-label="Load a demo sample" className="h-8 w-auto max-w-64 text-sm" value="" onChange={(e) => loadSample(e.target.value)}>
             <option value="">Load a demo sample…</option>
             {samples.map((s) => (
               <option key={s.key} value={s.key}>
@@ -158,13 +159,13 @@ export function CentralisedForm({ samples }: { samples: Sample[] }) {
           </div>
           {src.fileName && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <HugeiconsIcon icon={Attachment01Icon} size={14} aria-hidden />
+              <Icon icon={Attachment01Icon} size={14} aria-hidden />
               {src.fileName}
             </p>
           )}
           <div className="flex justify-end">
             <Button onClick={extract} disabled={extracting || !src.text.trim()}>
-              <HugeiconsIcon icon={AiBrain01Icon} aria-hidden />
+              <Icon icon={AiBrain01Icon} aria-hidden />
               {extracting ? "Extracting…" : "Extract fields"}
             </Button>
           </div>
@@ -182,10 +183,15 @@ export function CentralisedForm({ samples }: { samples: Sample[] }) {
         </CardHeader>
         <CardContent>
           {!fields ? (
-            <div className="flex flex-col items-center gap-2 py-16 text-center">
-              <HugeiconsIcon icon={AiBrain01Icon} size={22} className="text-muted-foreground" aria-hidden />
-              <p className="text-sm text-muted-foreground">Extract the source to fill the centralised form.</p>
-            </div>
+            <Empty className="py-16">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Icon icon={AiBrain01Icon} />
+                </EmptyMedia>
+                <EmptyTitle>Nothing extracted yet</EmptyTitle>
+                <EmptyDescription>Paste the email, transcript or letter on the left, or load a demo sample, then extract the fields.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="flex flex-col gap-5">
               {GROUPS.map((g) => (
@@ -230,8 +236,8 @@ export function CentralisedForm({ samples }: { samples: Sample[] }) {
               ))}
               <div className="flex items-center justify-between gap-3 border-t border-black/[0.06] pt-4 dark:border-white/[0.08]">
                 <p className="text-xs text-muted-foreground">Logging runs EDS lookup, duplicate check, assessment, allocation and the acknowledgement.</p>
-                <Button onClick={logCase} disabled={logging} variant="brand">
-                  <HugeiconsIcon icon={SentIcon} aria-hidden />
+                <Button onClick={logCase} disabled={logging}>
+                  <Icon icon={SentIcon} aria-hidden />
                   {logging ? "Logging…" : "Log case"}
                 </Button>
               </div>

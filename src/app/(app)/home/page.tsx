@@ -1,27 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert02Icon,
-  CheckmarkCircle02Icon,
-  Clock01Icon,
-  FileAddIcon,
-  Flag02Icon,
-  InboxIcon,
-  Mail01Icon,
-  AiBrain01Icon,
-  Note01Icon,
-} from "@hugeicons/core-free-icons";
+import { Icon } from "@/components/ccms/icons";
+import { AiBrain01Icon, CheckmarkCircle02Icon, Note01Icon } from "@/components/ccms/icons";
 import { currentActor } from "@/ccms/session";
 import { homeData, workloadLabel } from "@/ccms/queries";
 import { SOURCE_LABELS, STAGES, STAGE_LABELS, type Source } from "@/ccms/constants";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Kpi } from "@/components/ccms/kpi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Kpi, KpiStrip } from "@/components/ccms/kpi";
 import { BarList, ChartTable, StackedBar } from "@/components/ccms/charts";
 import { SlaMeter, STATUS } from "@/components/ccms/sla-meter";
-import { PriorityBadge } from "@/components/ccms/badges";
-import { formatDateTime, titleCase } from "@/components/ccms/format";
+import { PriorityCell } from "@/components/ccms/case-table";
+import { ActivityTimeline } from "@/components/ccms/activity-timeline";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 export const dynamic = "force-dynamic";
 
@@ -52,156 +43,130 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-5 px-6 py-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">
-            {now.toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Singapore" })}
-          </p>
-          <h1 className="text-xl font-semibold">
-            {greeting(now)}, {actor.name.split(" ")[0]}
-          </h1>
-          <p className="text-sm text-muted-foreground">{workloadLabel(actor)} at a glance.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/inbox">
-              <HugeiconsIcon icon={InboxIcon} aria-hidden />
-              Open my cases
-            </Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/intake">
-              <HugeiconsIcon icon={FileAddIcon} aria-hidden />
-              Log a case
-            </Link>
-          </Button>
-        </div>
+    <div className="flex flex-col gap-4 px-6 py-5">
+      <div className="flex flex-col gap-0.5">
+        <h1 className="text-lg font-semibold">
+          {greeting(now)}, {actor.name.split(" ")[0]}
+        </h1>
+        <p className="text-xs text-muted-foreground">
+          {now.toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Singapore" })} · {workloadLabel(actor)}
+        </p>
       </div>
 
-      <section aria-label="Key figures" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <Kpi label="Open cases" value={k.open} context="In your workload" icon={InboxIcon} href="/inbox?scope=all" />
-        <Kpi label="SLA breached" value={k.breached} context="Needs action now" icon={Alert02Icon} iconColor={STATUS.critical} emphasis href="/inbox?filter=breached&scope=all" />
-        <Kpi label="Near breach" value={k.nearBreach} context="Past the alert threshold" icon={Clock01Icon} iconColor={STATUS.warning} href="/inbox?filter=near_breach&scope=all" />
-        <Kpi label="Unacknowledged" value={k.awaitingAck} context="2-working-day ack SLA" icon={Mail01Icon} href="/inbox?filter=awaiting_ack&scope=all" />
-        <Kpi label="To assess" value={k.toAssess} context="AI output awaiting review" icon={AiBrain01Icon} href="/inbox?filter=to_assess&scope=all" />
-        <Kpi label="Significant" value={k.significant} context={`${k.vulnerable} vulnerable customer${k.vulnerable === 1 ? "" : "s"}`} icon={Flag02Icon} href="/inbox?filter=significant&scope=all" />
-      </section>
+      <KpiStrip>
+        <Kpi label="Open cases" value={k.open} context="In your workload" href="/inbox?scope=all" />
+        <Kpi label="SLA breached" value={k.breached} context="Needs action now" alert href="/inbox?filter=breached&scope=all" />
+        <Kpi label="Near breach" value={k.nearBreach} context="Past the alert threshold" href="/inbox?filter=near_breach&scope=all" />
+        <Kpi label="Unacknowledged" value={k.awaitingAck} context="2-working-day ack SLA" href="/inbox?filter=awaiting_ack&scope=all" />
+        <Kpi label="To assess" value={k.toAssess} context="AI output awaiting review" href="/inbox?filter=to_assess&scope=all" />
+        <Kpi label="Significant" value={k.significant} context={`${k.vulnerable} vulnerable customer${k.vulnerable === 1 ? "" : "s"}`} href="/inbox?filter=significant&scope=all" />
+      </KpiStrip>
 
-      <section className="grid items-start gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-1">
-              <CardTitle>SLA health</CardTitle>
-              <CardDescription>Open cases by their most urgent running clock</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <StackedBar data={slaData} />
-            <ChartTable data={slaData} valueLabel="Cases" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-1">
-              <CardTitle>Open cases by stage</CardTitle>
-              <CardDescription>Where work sits in the seven-stage lifecycle</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <BarList data={stageData} />
-            <ChartTable data={stageData} valueLabel="Cases" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-1">
-              <CardTitle>Intake by channel</CardTitle>
-              <CardDescription>Cases received in the last 7 days</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {intakeData.length ? <BarList data={intakeData} /> : <p className="py-6 text-center text-sm text-muted-foreground">No cases received this week.</p>}
-            {intakeData.length > 0 && <ChartTable data={intakeData} valueLabel="Cases" />}
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-1">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card>
+            <CardHeader>
               <CardTitle>Needs attention</CardTitle>
-              <CardDescription>Breached and near-breach cases, most urgent first</CardDescription>
-            </div>
-            <Button asChild variant="ghost" size="xs">
-              <Link href="/inbox?filter=at_risk&scope=all">View all</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="px-0 pb-1">
-            {d.attention.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={22} color={STATUS.good} aria-hidden />
-                <p className="text-sm font-medium">Nothing at risk</p>
-                <p className="text-sm text-muted-foreground">Every open case is inside its SLA window.</p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.08]">
-                {d.attention.map((a) => (
-                  <li key={a.id}>
-                    <Link href={`/cases/${a.number}`} className="grid grid-cols-[minmax(0,1fr)_10rem] items-center gap-4 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:bg-muted/50">
-                      <span className="flex min-w-0 flex-col gap-0.5">
-                        <span className="flex items-center gap-2">
-                          <span className="tabular text-xs text-muted-foreground">{a.number}</span>
-                          <PriorityBadge priority={a.priority} />
+              <Button asChild variant="link" size="xs">
+                <Link href="/inbox?filter=at_risk&scope=all">View all at-risk cases</Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              {d.attention.length === 0 ? (
+                <Empty className="py-10">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Icon icon={CheckmarkCircle02Icon} color={STATUS.good} />
+                    </EmptyMedia>
+                    <EmptyTitle>Nothing at risk</EmptyTitle>
+                    <EmptyDescription>Every open case is inside its SLA window.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <ul className="divide-y">
+                  {d.attention.map((a) => (
+                    <li key={a.id}>
+                      <Link
+                        href={`/cases/${a.number}`}
+                        className="grid grid-cols-[minmax(0,1fr)_9rem] items-center gap-4 px-4 py-2 outline-none hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:grid-cols-[9rem_minmax(0,1fr)_6.5rem_10rem]"
+                      >
+                        <span className="tabular hidden text-xs text-muted-foreground sm:block">{a.number}</span>
+                        <span className="truncate text-sm">{a.subject}</span>
+                        <span className="hidden sm:block">
+                          <PriorityCell priority={a.priority} />
                         </span>
-                        <span className="truncate text-[13px] font-medium">{a.subject}</span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {titleCase(a.nature)} · {a.caseManager ?? "Unassigned"}
-                        </span>
-                      </span>
-                      <SlaMeter health={a.sla.health} percent={a.sla.percent} remainingMs={a.sla.remainingMs} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-1">
+                        <SlaMeter health={a.sla.health} percent={a.sla.percent} remainingMs={a.sla.remainingMs} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Open cases by stage</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <BarList data={stageData} />
+                <ChartTable data={stageData} valueLabel="Cases" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Intake by channel</CardTitle>
+                <span className="text-xs text-muted-foreground">Last 7 days</span>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {intakeData.length ? <BarList data={intakeData} /> : <p className="py-6 text-center text-sm text-muted-foreground">No cases received this week.</p>}
+                {intakeData.length > 0 && <ChartTable data={intakeData} valueLabel="Cases" />}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>SLA health</CardTitle>
+              <span className="text-xs text-muted-foreground">Most urgent running clock</span>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <StackedBar data={slaData} />
+              <ChartTable data={slaData} valueLabel="Cases" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
               <CardTitle>Recent activity</CardTitle>
-              <CardDescription>Latest notes on cases in your workload</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {d.activity.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">No activity yet.</p>
-            ) : (
-              <ol className="flex flex-col gap-3.5">
-                {d.activity.map((n) => (
-                  <li key={n.id} className="flex gap-3">
-                    <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-                      <HugeiconsIcon icon={NOTE_ICON[n.kind as keyof typeof NOTE_ICON] ?? Note01Icon} size={13} aria-hidden />
-                    </span>
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="line-clamp-2 text-[13px]">{n.body}</span>
-                      <span className="tabular text-xs text-muted-foreground">
-                        <Link href={`/cases/${n.number}`} className="hover:text-foreground hover:underline">
-                          {n.number}
-                        </Link>{" "}
-                        · {formatDateTime(n.at)}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+            </CardHeader>
+            <CardContent>
+              {d.activity.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">No activity yet.</p>
+              ) : (
+                <ActivityTimeline
+                  now={now}
+                  events={d.activity.map((n) => ({
+                    id: n.id,
+                    at: n.at,
+                    actor: n.author,
+                    icon: NOTE_ICON[n.kind as keyof typeof NOTE_ICON] ?? Note01Icon,
+                    action: n.kind === "work_note" ? "added a work note on" : "updated",
+                    target: (
+                      <Link href={`/cases/${n.number}`} className="tabular whitespace-nowrap hover:underline">
+                        {n.number}
+                      </Link>
+                    ),
+                    body: <p className="line-clamp-2 text-sm text-muted-foreground">{n.body}</p>,
+                  }))}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
-
