@@ -1,0 +1,177 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Quiet, near-monochrome workspace in the manner of Lightfield and Notion: white
+ * surfaces, hairline borders, ink at three strengths, a black primary action.
+ * Colour is reserved for data that needs it (SLA state, priority, confidence).
+ */
+:root {
+  --radius: 0.625rem;
+  --background: #ffffff;
+  --foreground: #242629;
+  --card: #ffffff;
+  --card-foreground: #242629;
+  --popover: #ffffff;
+  --popover-foreground: #242629;
+  --primary: #1f2024;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eaed;
+  --secondary-foreground: #242629;
+  --muted: #f7f8f9;
+  --muted-foreground: #696c72;
+  --accent: #eff0f2;
+  --accent-foreground: #242629;
+  --brand: #0066ff;
+  --destructive: #c4382f;
+  --warning: oklch(0.75 0.15 75);
+  --success: oklch(0.6 0.13 155);
+  --info: oklch(0.6 0.12 245);
+  --border: #ebecef;
+  --input: #d5d8dd;
+  --ring: #0066ff;
+  --sidebar: #f5f6f7;
+  --page: #fbfbfc;
+  --series-1: #3d4047;
+
+  /* Motion values from transitions.dev: one smooth-out curve, short durations. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.185 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: #ededed;
+  --primary-foreground: #171717;
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 30%);
+  --ring: #ededed;
+  --sidebar: oklch(0.175 0 0);
+  --page: #0d0d0d;
+  --series-1: #3987e5;
+}
+
+@theme inline {
+  /* Three-zone record layout (form, activity, context) starts here. */
+  --breakpoint-wide: 85rem;
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-data), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-brand: var(--brand);
+  /* Surfaces sit on a 1px ring and a faint layered shadow, as Attio does, instead of a hard border. */
+  --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.04);
+  --shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.06), 0 2px 6px rgb(0 0 0 / 0.05), 0 4px 42px rgb(0 0 0 / 0.06);
+  --shadow-control: 0 1px 1px rgb(11 13 24 / 0.05);
+  /* Interface text is 13px, as in the references. */
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-page: var(--page);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  button:not(:disabled),
+  [role="tab"]:not(:disabled),
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+  /* Attio's setup: Inter at medium weight with the ss03 set. */
+  body {
+    @apply bg-background text-foreground font-sans font-medium antialiased;
+    letter-spacing: -0.01em;
+    font-feature-settings: "ss03";
+  }
+  /* Optical sizing stays automatic: Inter switches towards its Display cut as headings grow. */
+  h1, h2, h3 {
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+  h1 {
+    letter-spacing: -0.02em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* Figures, dates and record numbers: brand face with aligned digits (mono is kept for raw source text only). */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pressable feedback, gated to real pointers. */
+@media (hover: hover) and (pointer: fine) {
+  .pressable:active {
+    transform: scale(0.97);
+  }
+}
+.pressable {
+  transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:active {
+    transform: none;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+}
+
+/* Content reveal after the route skeleton: fade with a 2px blur, then settle. */
+.reveal {
+  animation: reveal 400ms var(--ease-out) both;
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}

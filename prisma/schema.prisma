@@ -1,0 +1,539 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================================
+// Identity and organisation
+// =====================================================================
+
+/// Personas (BSD section 7): frontliner, case_manager, team_lead, bu_staff,
+/// ce_team, head_of_ce, qa, admin, service (n8n).
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  roles      String[]
+  /// Staff profile used by allocation, e.g. "senior", "fidrec_trained", "vulnerable_care".
+  skills     String[] @default([])
+  buId       String?
+  bu         BusinessUnit? @relation(fields: [buId], references: [id])
+  teamId     String?
+  team       Team?    @relation("TeamMembers", fields: [teamId], references: [id])
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ledTeams       Team[]      @relation("TeamLead")
+  managedCases   Case[]      @relation("CaseManager")
+  subTicketsOwned SubTicket[] @relation("SubTicketAssignee")
+}
+
+model BusinessUnit {
+  id        String   @id @default(cuid())
+  code      String   @unique // CE, CLAIMS, DIST, LIFE, GI, HEALTH, COMPLIANCE
+  name      String
+  createdAt DateTime @default(now())
+
+  users      User[]
+  teams      Team[]
+  cases      Case[]
+  subTickets SubTicket[]
+  capas      CapaAction[]
+}
+
+model Team {
+  id       String       @id @default(cuid())
+  name     String
+  buId     String
+  bu       BusinessUnit @relation(fields: [buId], references: [id])
+  leadId   String?
+  lead     User?        @relation("TeamLead", fields: [leadId], references: [id])
+  members  User[]       @relation("TeamMembers")
+  cases    Case[]
+}
+
+// =====================================================================
+// Customer data (EDS / CRM / policy are mocked)
+// =====================================================================
+
+model Customer {
+  id                String   @id @default(cuid())
+  customerNo        String   @unique
+  name              String
+  nricMasked        String?
+  email             String?
+  phone             String?
+  /// EDS attributes
+  grade             String?  // e.g. "Platinum", "Gold", "Standard"
+  vip               Boolean  @default(false) // VVIP
+  vulnerable        Boolean  @default(false)
+  vulnerableType    String?  // elderly, illness, bereavement, financial_hardship, disability
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  policies Policy[]
+  cases    Case[]
+}
+
+model Policy {
+  id           String   @id @default(cuid())
+  policyNo     String   @unique
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+  lineOfBusiness String // life, general, health
+  product      String
+  status       String   @default("inforce")
+  agentCode    String?
+  agentName    String?
+  claimNo      String?
+  createdAt    DateTime @default(now())
+}
+
+// =====================================================================
+// The case object (one object, seven stages)
+// =====================================================================
+
+model Case {
+  id               String    @id @default(cuid())
+  number           String    @unique // CCMS-2026-000123
+  /// intake | acknowledgement | assessment | investigation | resolution | closure | rca_qa | closed
+  stage            String    @default("intake")
+  /// open | pending_customer | pending_approval | resolved | closed | cancelled
+  status           String    @default("open")
+
+  // --- Group 1: case information
+  nature           String?   // complaint | feedback | enquiry | appeal
+  subType          String?   // e.g. service_request, claim_delay, premium
+  source           String    // email | call_centre | letter | social | web_form | branch | growhill | app
+  channelRef       String?   // mailbox message id, recording file, etc.
+  receivedAt       DateTime  @default(now())
+  subject          String
+  description      String
+
+  // --- Group 2: customer
+  customerId       String?
+  customer         Customer? @relation(fields: [customerId], references: [id])
+  complainantName  String?
+  complainantEmail String?
+  complainantPhone String?
+  isThirdParty     Boolean   @default(false)
+
+  // --- Group 3/4/5: policy, claim, agent
+  policyNo         String?
+  lineOfBusiness   String?   // life | general | health
+  product          String?
+  claimNo          String?
+  agentCode        String?
+  agentInvolved    Boolean   @default(false)
+
+  // --- Group 6: customer expectation
+  desiredOutcome   String?
+
+  // --- Group 7: regulatory
+  regulatoryFlag   String?   // MAS | MOH | CPFB | none
+  fidrec           Boolean   @default(false)
+
+  // --- Group 8: classification and sensitivity
+  priority         String    @default("P3") // P1..P4
+  significant      Boolean   @default(false)
+  potentialChr     Boolean   @default(false) // potential customer-harm report
+  dataClassification String  @default("internal") // public | internal | confidential | restricted
+  confidential     Boolean   @default(false)
+  vulnerable       Boolean   @default(false)
+  vip              Boolean   @default(false)
+  reopened         Boolean   @default(false)
+
+  // --- Group 9: assignment
+  buId             String?
+  bu               BusinessUnit? @relation(fields: [buId], references: [id])
+  teamId           String?
+  team             Team?     @relation(fields: [teamId], references: [id])
+  caseManagerId    String?
+  caseManager      User?     @relation("CaseManager", fields: [caseManagerId], references: [id])
+  targetResolutionAt DateTime?
+
+  // --- Lifecycle
+  acknowledgedAt   DateTime?
+  resolvedAt       DateTime?
+  closedAt         DateTime?
+  closureSlaAt     DateTime? // customer-response window after the reply
+  customerResponse String?   // accepted | rejected | no_response | further_info
+  rcaFlagged       Boolean   @default(false) // manual CE flag
+  qaSampled        Boolean   @default(false)
+  /// Free-form extra fields, dynamic by nature / LOB.
+  extra            Json      @default("{}")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  createdBy        String?
+  updatedBy        String?
+
+  assessments    CaseAssessment[]
+  linksFrom      CaseLink[]       @relation("LinkFrom")
+  linksTo        CaseLink[]       @relation("LinkTo")
+  subTickets     SubTicket[]
+  communications Communication[]
+  escalations    Escalation[]
+  closureForms   ClosureForm[]
+  slaClocks      SlaClock[]
+  rcaTickets     RcaTicket[]
+  qaAssessments  QaAssessment[]
+  attachments    Attachment[]
+  notes          CaseNote[]
+
+  @@index([stage, status])
+  @@index([caseManagerId])
+  @@index([customerId])
+}
+
+/// One row per BSD 3.1.3 preliminary-assessment output.
+model CaseAssessment {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  /// case_nature | regulatory_flag | fidrec | reopened_case | linked_cases | priority |
+  /// target_resolution_date | potential_chr | potential_significant | data_classification
+  output      String
+  aiValue     String?
+  confidence  Float?
+  rationale   String?
+  source      String   // kamios | reels | local
+  finalValue  String?
+  status      String   @default("proposed") // proposed | accepted | revised
+  revisedById String?
+  revisedAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@unique([caseId, output])
+}
+
+model CaseLink {
+  id         String   @id @default(cuid())
+  fromCaseId String
+  fromCase   Case     @relation("LinkFrom", fields: [fromCaseId], references: [id], onDelete: Cascade)
+  toCaseId   String
+  toCase     Case     @relation("LinkTo", fields: [toCaseId], references: [id], onDelete: Cascade)
+  kind       String   // duplicate | consolidated | related | reopened_from
+  score      Float?
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([fromCaseId, toCaseId, kind])
+}
+
+model CaseNote {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind      String   @default("work_note") // work_note | resolution_log | system
+  body      String
+  authorId  String?
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  caseId    String?
+  case      Case?    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  subTicketMessageId String?
+  fileName  String
+  mimeType  String
+  sizeBytes Int      @default(0)
+  /// Extracted text (OCR / transcript) shown beside the centralised form.
+  extractedText String?
+  storageKey String?
+  createdAt DateTime @default(now())
+}
+
+// =====================================================================
+// Investigation
+// =====================================================================
+
+model SubTicket {
+  id          String    @id @default(cuid())
+  number      String    @unique // SUB-000123
+  caseId      String
+  case        Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  buId        String
+  bu          BusinessUnit @relation(fields: [buId], references: [id])
+  assigneeId  String?
+  assignee    User?     @relation("SubTicketAssignee", fields: [assigneeId], references: [id])
+  senderId    String
+  request     String
+  status      String    @default("open") // open | responded | re_requested | closed
+  dueAt       DateTime
+  respondedAt DateTime?
+  remindersSent Int     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    SubTicketMessage[]
+}
+
+model SubTicketMessage {
+  id          String    @id @default(cuid())
+  subTicketId String
+  subTicket   SubTicket @relation(fields: [subTicketId], references: [id], onDelete: Cascade)
+  direction   String    // request | response | re_request | reminder
+  body        String
+  authorId    String?
+  createdAt   DateTime  @default(now())
+}
+
+model Communication {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  channel     String   // email | sms | call | letter
+  direction   String   // outbound | inbound
+  purpose     String   @default("update") // acknowledgement | update | resolution | auto_reply | notification
+  to          String?
+  subject     String?
+  body        String
+  templateKey String?
+  /// queued | sent | delivered | failed | received | logged
+  status      String   @default("queued")
+  error       String?
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  authorId    String?
+  createdAt   DateTime @default(now())
+}
+
+model Escalation {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  reason      String
+  raisedById  String
+  status      String   @default("open") // open | opinion_recorded | closed
+  createdAt   DateTime @default(now())
+  opinions    EscalationOpinion[]
+}
+
+model EscalationOpinion {
+  id           String     @id @default(cuid())
+  escalationId String
+  escalation   Escalation @relation(fields: [escalationId], references: [id], onDelete: Cascade)
+  /// head_of_ce | cco | ceo | board
+  level        String
+  opinion      String
+  recordedById String
+  createdAt    DateTime   @default(now())
+}
+
+// =====================================================================
+// Resolution, closure and approvals
+// =====================================================================
+
+/// The 10-field complaint closure form; fields kept in `fields` JSON so the
+/// form can follow Income's final field list without a migration.
+model ClosureForm {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  version     Int      @default(1)
+  fields      Json
+  /// draft | submitted | approved | rejected
+  status      String   @default("draft")
+  submittedById String?
+  submittedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  approvals   Approval[]
+}
+
+model Approval {
+  id            String   @id @default(cuid())
+  kind          String   // closure_form | sla_extension
+  closureFormId String?
+  closureForm   ClosureForm? @relation(fields: [closureFormId], references: [id], onDelete: Cascade)
+  slaExtensionId String?
+  slaExtension  SlaExtension? @relation(fields: [slaExtensionId], references: [id], onDelete: Cascade)
+  step          Int      @default(1)
+  approverRole  String
+  approverId    String?
+  /// pending | approved | rejected | skipped
+  status        String   @default("pending")
+  /// Field-level verdicts: { [field]: { agree: boolean, comment?: string } }
+  fieldVerdicts Json     @default("{}")
+  comment       String?
+  decidedAt     DateTime?
+  createdAt     DateTime @default(now())
+}
+
+// =====================================================================
+// SLA
+// =====================================================================
+
+model SlaClock {
+  id            String    @id @default(cuid())
+  caseId        String
+  case          Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind          String    // acknowledgement | resolution | closure
+  startedAt     DateTime
+  targetAt      DateTime
+  /// Percent of the window at which "near breach" fires (from Reels sla_thresholds).
+  nearBreachPct Int       @default(80)
+  /// running | paused | met | breached_met | cancelled
+  state         String    @default("running")
+  pausedAt      DateTime?
+  pausedMs      Int       @default(0)
+  stoppedAt     DateTime?
+  nearBreachAlertedAt DateTime?
+  breachedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  extensions    SlaExtension[]
+
+  @@unique([caseId, kind])
+  @@index([state, targetAt])
+}
+
+model SlaExtension {
+  id            String   @id @default(cuid())
+  slaClockId    String
+  slaClock      SlaClock @relation(fields: [slaClockId], references: [id], onDelete: Cascade)
+  requestedById String
+  reason        String
+  extraWorkingDays Int
+  status        String   @default("pending") // pending | approved | rejected
+  createdAt     DateTime @default(now())
+  approvals     Approval[]
+}
+
+// =====================================================================
+// RCA, CAPA and QA
+// =====================================================================
+
+model RcaTicket {
+  id              String   @id @default(cuid())
+  number          String   @unique
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  triggerReason   String
+  rootCauseCategory String?
+  rootCauseDescription String?
+  aiSuggestion    Json?
+  /// open | in_progress | pending_closure | closed
+  status          String   @default("open")
+  closedById      String?
+  closedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  capas           CapaAction[]
+}
+
+/// The 7 CAPA fields.
+model CapaAction {
+  id            String    @id @default(cuid())
+  rcaTicketId   String
+  rcaTicket     RcaTicket @relation(fields: [rcaTicketId], references: [id], onDelete: Cascade)
+  actionType    String    // corrective | preventive
+  description   String
+  buId          String
+  bu            BusinessUnit @relation(fields: [buId], references: [id])
+  ownerId       String?
+  dueAt         DateTime
+  milestones    Json      @default("[]") // [{ name, dueAt, doneAt? }]
+  status        String    @default("open") // open | in_progress | done
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model QaAssessment {
+  id           String   @id @default(cuid())
+  caseId       String
+  case         Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  sampleReason String
+  assessorId   String?
+  scores       Json     @default("{}") // { criterion: 1..5 }
+  overall      String?  // pass | improvement_needed | fail
+  comments     String?
+  status       String   @default("queued") // queued | completed
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model LessonLearnt {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  category   String?
+  sourceCaseId String?
+  authorId   String?
+  createdAt  DateTime @default(now())
+}
+
+// =====================================================================
+// Governance and integration
+// =====================================================================
+
+/// Tamper-evident audit trail: hash = sha256(prevHash + canonical entry).
+model AuditEntry {
+  id         String   @id @default(cuid())
+  seq        Int      @unique @default(autoincrement())
+  entity     String
+  entityId   String
+  action     String   // create | update | delete | approve | ...
+  changes    Json     @default("{}")
+  actorId    String?
+  prevHash   String
+  hash       String
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+}
+
+/// Audit-on-read for the query page.
+model ReadLog {
+  id        String   @id @default(cuid())
+  caseId    String
+  userId    String
+  context   String   // query_page | case_360 | export
+  masked    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+}
+
+/// Events for n8n (pushed to a webhook and pollable via /api/events).
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  seq         Int       @unique @default(autoincrement())
+  type        String
+  caseId      String?
+  payload     Json
+  deliveredAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([deliveredAt])
+}
+
+/// Communication templates by case nature (admin-maintained).
+model Template {
+  id        String   @id @default(cuid())
+  key       String   @unique // ack_complaint, ack_enquiry, ...
+  channel   String   // email | sms
+  nature    String?
+  subject   String?
+  body      String
+  updatedAt DateTime @updatedAt
+}
+
+/// Admin-tunable settings (e.g. working-day calendar, demo clock offset).
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model NumberCounter {
+  key  String @id
+  next Int    @default(1)
+}

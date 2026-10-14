@@ -1,0 +1,42 @@
+import * as React from "react";
+import { Slot } from "radix-ui";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const buttonVariants = cva(
+  "pressable inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: "border border-[#4d5058] bg-primary text-primary-foreground shadow-control hover:bg-[#2c2e33]",
+        destructive: "bg-destructive text-white hover:bg-destructive/90",
+        outline: "border border-input bg-card text-foreground shadow-control hover:bg-muted",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-sm",
+        xs: "h-7 rounded-md px-2 text-xs",
+        lg: "h-10 rounded-md px-6",
+        icon: "size-9",
+        "icon-sm": "size-8",
+      },
+    },
+    defaultVariants: { variant: "default", size: "default" },
+  },
+);
+
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+  const Comp = asChild ? Slot.Root : "button";
+  return <Comp data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+}
+
+export { Button, buttonVariants };
