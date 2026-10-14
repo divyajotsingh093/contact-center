@@ -44,8 +44,11 @@ fallback result `local` so it's never mistaken for the real service.
 | `response_drafting` | case, resolution log, `plainLanguage` flag | draft reply + coaching notes |
 | `rca_suggestion` | case, sub-ticket history, closure form | root-cause category, description, suggested CAPA |
 
-Settings: `KAMIOS_BASE_URL`, `KAMIOS_API_TOKEN`, and `KAMIOS_AGENT_<NAME>` for each
-agent ID. **Waiting on the API spec and tokens.**
+Calls (same as the GH and Northbeam n8n flows): `POST {base}/inferenceservice/assistant/conversation/create`
+then `POST .../message/create` with `{conversation_id, text}`; the reply is read from
+`output.text` as JSON. Settings: `KAMIOS_BASE_URL`, `KAMIOS_AUTH_HEADER` (the header the
+AI Hub keys go in) and `KAMIOS_AGENT_<NAME>`, one API key per agent. **Waiting on the
+six CCMS agents being created in AI Hub and their keys.**
 
 ### Reels (`src/integrations/reels.ts`)
 
@@ -62,8 +65,12 @@ One Reels product per decision. The CCMS sends the case facts and gets back the 
 | `rca_trigger` | 5 criteria + CE flag | RCA required, reason |
 | `qa_sampling` | nature, BU, case manager, outcome, random seed | sampled, reason |
 
-Settings: `REELS_BASE_URL`, `REELS_API_TOKEN`, and `REELS_PRODUCT_<DECISION>`. The
-local fallbacks in `src/integrations/reels-local.ts` mirror the Reels tables, so the
+The products are generated from `reels-local.ts` by `scripts/reels-specs.ts` and compiled
+into importable files in `reels/products/`. Calls (same as the GH and Deem n8n flows): a
+client-credentials token from `{REELS_IDS_URL}/token`, then `POST {REELS_BASE_URL}/integration/api/runtime/sync`
+with `{workflowId, version, inputObj: {case: facts}}`; outputs come back under `result.out`.
+Settings: `REELS_BASE_URL`, `REELS_IDS_URL`, `REELS_CLIENT_ID`, `REELS_CLIENT_SECRET` and
+`REELS_PRODUCT_<DECISION>` (each imported product's workflowId). The local fallbacks in `src/integrations/reels-local.ts` mirror the Reels tables, so the
 two can be compared line by line.
 
 ### n8n (`src/integrations/n8n.ts`)

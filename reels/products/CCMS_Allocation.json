@@ -1,0 +1,1672 @@
+{
+  "products": [
+    {
+      "id": "9a5b6e21-2092-432d-aa3b-1c3eca9ea63b",
+      "name": "CCMS Allocation",
+      "description": "Income CCMS decision \"allocation\". Generated from src/integrations/reels-local.ts; keep row order identical.",
+      "created_date": "2026-10-14T09:47:58.674Z",
+      "category": null,
+      "last_updated_on": "2026-10-14T09:47:58.674Z",
+      "is_deleted": false,
+      "created_by": {
+        "user_name": "underwriting@neutrinos.co",
+        "first_name": "Underwriting",
+        "last_name": "Neutrinos",
+        "createdAt": "2026-10-14T09:47:58.674Z",
+        "organization": {
+          "name": "underwriting",
+          "users": [
+            {
+              "user_name": "underwriting@neutrinos.co",
+              "first_name": "Underwriting",
+              "last_name": "Neutrinos",
+              "createdAt": "2026-10-14T09:47:58.674Z"
+            }
+          ]
+        }
+      },
+      "versions": [
+        {
+          "id": "2e51f54e-b236-4aa5-83a5-2bd204e51df3",
+          "version": "1.0.0",
+          "created_date": "2026-10-14T09:47:58.674Z",
+          "last_updated_on": "2026-10-14T09:47:58.674Z",
+          "input_json_model": {},
+          "output_json_model": {},
+          "input_json_schema": {
+            "type": "object",
+            "properties": {
+              "case": {
+                "type": "object",
+                "project": true,
+                "properties": {
+                  "nature": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "lineOfBusiness": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "significant": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "fidrec": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "vulnerable": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "subType": {
+                    "type": "string",
+                    "project": true
+                  }
+                }
+              }
+            }
+          },
+          "output_json_schema": {
+            "type": "object",
+            "properties": {
+              "out": {
+                "type": "object",
+                "project": true,
+                "properties": {
+                  "buCode": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "teamName": {
+                    "type": "string",
+                    "project": true
+                  },
+                  "requiredSkill": {
+                    "type": "string",
+                    "project": true
+                  }
+                }
+              }
+            },
+            "project": true
+          },
+          "api_rule_flag": false,
+          "tags": [
+            {
+              "id": "e5ffbdb3-efa1-4e97-a4d3-3fd704dba83e",
+              "name": "ccms"
+            },
+            {
+              "id": "1a87d2da-626f-4dcd-90aa-db7ee42fc520",
+              "name": "income"
+            }
+          ],
+          "status": {
+            "id": 1,
+            "status": "pending"
+          },
+          "rules_tree": {
+            "id": "6a6ba73d-024f-45b4-8dc7-6f6fdf056a63",
+            "rules": [
+              {
+                "id": "5fd38908-5204-4722-88f9-2b9c8d772e21",
+                "node_id": "571d2661-5d56-4ba3-b597-7ad14ff9eb7f",
+                "rule_name": "Allocation",
+                "rule_type": "start",
+                "rule_description": "",
+                "node_type": "start",
+                "result_type": "SINGLE",
+                "x": "120",
+                "y": "80",
+                "imported": null,
+                "input_map": {},
+                "output_map": {},
+                "active_version": "1.0.0",
+                "created_date": "2026-10-14T09:47:58.674Z",
+                "rule_versions": [
+                  {
+                    "id": "d9dfebde-a83c-4767-9443-99021ddb8593",
+                    "version": "1.0.0",
+                    "rule_expression": {
+                      "rule_expression": {
+                        "dependency_flows": [
+                          "b8aa5cc6-1789-4725-9c5f-60cd96e35b82"
+                        ]
+                      }
+                    },
+                    "fields": {},
+                    "created_date": "2026-10-14T09:47:58.674Z",
+                    "tags": [],
+                    "constants": [],
+                    "input_json_model": "{}",
+                    "output_json_model": "{}",
+                    "input_json_schema": null,
+                    "output_json_schema": null,
+                    "input_map": {
+                      "input_map": []
+                    },
+                    "output_map": {
+                      "output_map": []
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "f95bafad-37fc-4055-afe7-a776d0bb7d50",
+                "node_id": "86a1dfef-cfac-4ee4-98b8-7b75b49f5462",
+                "rule_name": "Allocation",
+                "rule_type": "DECISION_TABLE",
+                "rule_description": "",
+                "node_type": "step",
+                "result_type": "SINGLE",
+                "x": "300",
+                "y": "80",
+                "imported": null,
+                "input_map": {},
+                "output_map": {},
+                "active_version": "1.0.0",
+                "created_date": "2026-10-14T09:47:58.674Z",
+                "rule_versions": [
+                  {
+                    "id": "f9ad370b-cbc7-463b-b6f9-233d9f1e7c22",
+                    "version": "1.0.0",
+                    "rule_expression": {
+                      "rule_expression": {
+                        "rows": [
+                          [
+                            {
+                              "id": "fef54828-2ade-4c26-9dc7-4af714a4885e",
+                              "value": "complaint",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "87a721df-fb8c-4e9b-981f-391d304b409d",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "1a4f6d9f-f8a7-4920-9a17-e5da8f22236b",
+                              "value": "true",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "9f3faa15-95da-481a-9c2f-dcdfe9fc9c1e",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "95f66953-4111-43ca-8e67-9944582c3d0b",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "6c4eeaca-2d86-4fa2-84e7-86dd95fab4dd",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "ae979895-5aea-421e-8852-c1b9f04a13ef",
+                              "value": "CE",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "4f6242ff-cfad-4bb8-8e1a-e1063d5347f0",
+                              "value": "CE Significant",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "4cb3f1ba-76a7-4d2b-8538-08fa97903792",
+                              "value": "senior",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "b55d5cfd-107a-42ee-a731-3efe0756682a",
+                              "value": "complaint",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "b246b963-fbac-419f-9773-1e5deafdb8fc",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "fcca8d42-70da-4202-b618-912c1daf61ad",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "a8d63426-0b8e-45e3-b7f2-25bf7f790d86",
+                              "value": "true",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "f996159c-694d-46de-b771-38f297b0e346",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "cbc8cff2-7f5a-426b-a783-6ec44d7964ec",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "14ee18fa-9f24-4efc-ae99-5b8164d1c887",
+                              "value": "CE",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "03f96a58-9848-4e31-9bb2-474d17c82282",
+                              "value": "CE Significant",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "9501d3f5-b849-4e22-a704-a44b1fdce770",
+                              "value": "fidrec_trained",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "9a73ff95-0a94-4b5c-823b-699c9aee89d3",
+                              "value": "complaint",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "d5bb54c3-ccfb-42d5-b704-fe431b83cc61",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "379d0a0d-19a9-414c-9d65-ac38d4c69ba7",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "0c97d18b-7ca5-44dc-aebd-ffe6fd1a8339",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "5708bdcc-23bd-4cc4-a5b8-1e0bbfec1844",
+                              "value": "true",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "83d84318-787c-470b-8fdb-d5d328431417",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "93229251-cca8-4d62-8b30-ec85b6e0bf46",
+                              "value": "CE",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "0052af02-9f28-42b2-8ebd-b98ebbbee211",
+                              "value": "CE Complaints",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "b1f0561a-e7ab-4200-806e-cf0bcec71d27",
+                              "value": "vulnerable_care",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "374297d0-bb44-4ab0-bd9b-451151c75e89",
+                              "value": "complaint",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "63bea30e-c8c6-4221-a03e-522b70a57cf4",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "4d30e434-1276-4099-ae54-b77e6c66529f",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "930b35d7-f067-4e0d-9077-8ecab177d50a",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "7bc57809-aed2-4e6d-afbc-e7fd2ec2dc1f",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "fc52626e-cdd8-4f7a-aaf3-d221f54c8502",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "fc32d8ac-55c2-4afc-83dc-687bffe219dd",
+                              "value": "CE",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "e1cab9a6-3175-4934-9e5b-a3688bb6c720",
+                              "value": "CE Complaints",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "326b3fb3-bd07-44a8-af1d-8c231da5998a",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "53c57065-f2df-4f72-969b-e753035f8211",
+                              "value": "appeal",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "46599e5b-f9bf-4455-b5c0-2cf2317c3be1",
+                              "value": "health",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "cb5ecc19-7149-441e-9c69-a98f4099ba7b",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "4db0dcc1-51c3-4792-9c0c-7b914ce3fafb",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "3494b226-7ca7-47ab-beb3-f4cc0e2be47d",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "6290b26a-4372-4e27-8fcf-dc7b7a577624",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "928b14ee-17f4-4135-a6fc-3208d59f5660",
+                              "value": "HEALTH",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "c9b91b2e-761e-489f-a485-2c62550e5dbd",
+                              "value": "Health Appeals",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "1761809a-2ca3-4933-a016-738eb14dd839",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "22b305e5-7f17-4f4f-84d5-9b901138d74a",
+                              "value": "appeal",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "06f5bd3a-59bb-42ae-bfef-46fe5e75a3d4",
+                              "value": "general",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "686a0462-ad77-40bf-8a3d-ec791e48536a",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "eb6ba4e4-0f98-4581-97ea-2be16154c5fa",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "0460ad90-f96f-4ea4-866b-2d38c633c8cf",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "2430d45c-6065-4a69-ae43-caa1f209a2fa",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "4d53eabf-c1d1-4143-801d-52b36c10c815",
+                              "value": "GI",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "afc59e8c-9f33-4815-b78c-4aadcb84701b",
+                              "value": "GI Appeals",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "c04dbeff-821a-4994-b98d-35d5ed6997cd",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "bd2df7a0-724c-4bdd-8dd8-2781ab64ffa0",
+                              "value": "appeal",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "43992e7c-722d-45f4-9f21-2491ff477bf4",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "34a80303-097a-4dec-8443-44058152e511",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "57f538b0-d4a3-45e3-977e-1244aa7d9e51",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "62c3e4eb-e732-426f-95c7-477bae3413da",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "c1e47c36-6cfe-442a-9364-d0e5a1f9baee",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "7d91cb76-2e41-4e66-8cdd-5257649958c7",
+                              "value": "LIFE",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "f73606b8-feb3-4175-8021-eb4e1d9b634e",
+                              "value": "Life Appeals",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "616f4a4e-0fd0-42da-8911-dbfc3c667191",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ],
+                          [
+                            {
+                              "id": "1a2bea6e-40b7-4bea-8846-ffa4404741c4",
+                              "value": "enquiry,feedback",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "b6e24ad5-228c-43ba-9300-fd3ece2abfa6",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "edcdf7bd-2c7f-4b00-93d4-3548d7042ed5",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "0c1aed04-6501-4790-89b5-0550bdf3a268",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "9140cef1-375b-414d-a586-82415fd14738",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "d62b4f9e-8c7a-4838-9792-5b158efb6a48",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 3,
+                                "icon": "any",
+                                "name": "Anything",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "description": "Input value can be anything"
+                              }
+                            },
+                            {
+                              "id": "f1e7f5ee-0110-4dd4-9828-0a4c55cd96f6",
+                              "value": "CE",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "1548428a-d5b5-4ef8-bd15-dbb6c5ef5c19",
+                              "value": "CE Service",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            },
+                            {
+                              "id": "76f80b15-26ce-4a07-871a-f02b04a0ae1d",
+                              "value": "",
+                              "invalid": false,
+                              "operator": {
+                                "id": 1,
+                                "icon": "=",
+                                "name": "Equals",
+                                "type": "Basic",
+                                "showIn": "both",
+                                "valueLimit": 1,
+                                "description": "",
+                                "allowedDataTypes": [
+                                  "string",
+                                  "number"
+                                ]
+                              }
+                            }
+                          ]
+                        ],
+                        "headers": [
+                          {
+                            "id": "5de38b76-aa9a-4e75-bfc6-d4a7b08b3ee3",
+                            "type": "Condition",
+                            "header": {
+                              "path": "case.nature",
+                              "type": "input",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "0a38b742-2758-4964-acb4-d9a4682e7cde",
+                            "type": "Condition",
+                            "header": {
+                              "path": "case.lineOfBusiness",
+                              "type": "input",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "4bc0107b-64bd-4827-a130-c0aa0829fa0b",
+                            "type": "Condition",
+                            "header": {
+                              "path": "case.significant",
+                              "type": "input",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "73b6dfee-2fcc-4c8f-8469-b577167524f2",
+                            "type": "Condition",
+                            "header": {
+                              "path": "case.fidrec",
+                              "type": "input",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "6ed6dddf-7a9d-48cf-bb2b-25ea057ca869",
+                            "type": "Condition",
+                            "header": {
+                              "path": "case.vulnerable",
+                              "type": "input",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "7fcb1f5a-eabd-48c6-a391-7a56b6571142",
+                            "type": "Condition",
+                            "header": {
+                              "path": "case.subType",
+                              "type": "input",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "2e59f45f-4aa9-48e4-b64b-2cc4a8490c69",
+                            "type": "Result",
+                            "header": {
+                              "path": "out.buCode",
+                              "type": "output",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "9da0c56e-19b1-406d-917c-a6ec65ee2890",
+                            "type": "Result",
+                            "header": {
+                              "path": "out.teamName",
+                              "type": "output",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          },
+                          {
+                            "id": "5325140b-d277-4b80-96b1-002cc6b62925",
+                            "type": "Result",
+                            "header": {
+                              "path": "out.requiredSkill",
+                              "type": "output",
+                              "dataType": "string"
+                            },
+                            "invalid": false,
+                            "dateFormat": {
+                              "format": "DD/MM/YYYY",
+                              "timeIncluded": false
+                            }
+                          }
+                        ],
+                        "defaultRow": [
+                          {
+                            "id": "b4a2a38d-121d-4183-9a8e-d0cc81ce0620",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 3,
+                              "icon": "any",
+                              "name": "Anything",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "description": "Input value can be anything"
+                            }
+                          },
+                          {
+                            "id": "61db0b30-6e4d-46e6-b7ae-e8b11b949401",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 3,
+                              "icon": "any",
+                              "name": "Anything",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "description": "Input value can be anything"
+                            }
+                          },
+                          {
+                            "id": "db7fc44d-4a34-45e2-85af-80c9a3355573",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 3,
+                              "icon": "any",
+                              "name": "Anything",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "description": "Input value can be anything"
+                            }
+                          },
+                          {
+                            "id": "68527db8-a395-41fd-a8b3-b80a63ac4601",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 3,
+                              "icon": "any",
+                              "name": "Anything",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "description": "Input value can be anything"
+                            }
+                          },
+                          {
+                            "id": "106cd14c-8a24-4ef1-9149-f61a1b87d16c",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 3,
+                              "icon": "any",
+                              "name": "Anything",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "description": "Input value can be anything"
+                            }
+                          },
+                          {
+                            "id": "a527b226-79c8-4491-a92f-c97b16ee99d7",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 3,
+                              "icon": "any",
+                              "name": "Anything",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "description": "Input value can be anything"
+                            }
+                          },
+                          {
+                            "id": "8ee538f5-2fce-4d72-96b3-edaafbe435dd",
+                            "value": "CE",
+                            "invalid": false,
+                            "operator": {
+                              "id": 1,
+                              "icon": "=",
+                              "name": "Equals",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "valueLimit": 1,
+                              "description": "",
+                              "allowedDataTypes": [
+                                "string",
+                                "number"
+                              ]
+                            }
+                          },
+                          {
+                            "id": "60f9d2c5-ab58-4497-a769-d930fccf9999",
+                            "value": "CE Complaints",
+                            "invalid": false,
+                            "operator": {
+                              "id": 1,
+                              "icon": "=",
+                              "name": "Equals",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "valueLimit": 1,
+                              "description": "",
+                              "allowedDataTypes": [
+                                "string",
+                                "number"
+                              ]
+                            }
+                          },
+                          {
+                            "id": "f793d413-61ec-4c0d-b1ec-a2cf081cf422",
+                            "value": "",
+                            "invalid": false,
+                            "operator": {
+                              "id": 1,
+                              "icon": "=",
+                              "name": "Equals",
+                              "type": "Basic",
+                              "showIn": "both",
+                              "valueLimit": 1,
+                              "description": "",
+                              "allowedDataTypes": [
+                                "string",
+                                "number"
+                              ]
+                            }
+                          }
+                        ],
+                        "headersList": [],
+                        "disabledRows": [],
+                        "root_logical_op": "AND"
+                      }
+                    },
+                    "fields": {},
+                    "created_date": "2026-10-14T09:47:58.674Z",
+                    "tags": [],
+                    "constants": [],
+                    "input_json_model": "{}",
+                    "output_json_model": "{}",
+                    "input_json_schema": null,
+                    "output_json_schema": null,
+                    "input_map": {
+                      "input_map": []
+                    },
+                    "output_map": {
+                      "output_map": []
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "635c74a3-d379-462b-a3e7-7d3b7c25ce95",
+                "node_id": "b73d3cf9-ce45-456f-a701-97da9e122cec",
+                "rule_name": "end",
+                "rule_type": "end",
+                "rule_description": "",
+                "node_type": "end",
+                "result_type": "SINGLE",
+                "x": "480",
+                "y": "80",
+                "imported": null,
+                "input_map": {},
+                "output_map": {},
+                "active_version": "1.0.0",
+                "created_date": "2026-10-14T09:47:58.674Z",
+                "rule_versions": [
+                  {
+                    "id": "038abe8a-d00c-48ca-a8f5-dbdd25a22905",
+                    "version": "1.0.0",
+                    "rule_expression": {
+                      "rule_expression": {}
+                    },
+                    "fields": {},
+                    "created_date": "2026-10-14T09:47:58.674Z",
+                    "tags": [],
+                    "constants": [],
+                    "input_json_model": "{}",
+                    "output_json_model": "{}",
+                    "input_json_schema": null,
+                    "output_json_schema": null,
+                    "input_map": {
+                      "input_map": []
+                    },
+                    "output_map": {
+                      "output_map": []
+                    }
+                  }
+                ]
+              }
+            ],
+            "edges": [
+              {
+                "id": "8718d9fb-cc49-4089-abaf-c7065ecd957e",
+                "source": "571d2661-5d56-4ba3-b597-7ad14ff9eb7f",
+                "target": "86a1dfef-cfac-4ee4-98b8-7b75b49f5462",
+                "node_id": "454bb1bc-e0c2-4074-9daa-6a869a75294c",
+                "condition": null,
+                "vertices": null,
+                "loop_closing_edge": false
+              },
+              {
+                "id": "8cf56124-512e-4500-8eac-065ebd3573da",
+                "source": "86a1dfef-cfac-4ee4-98b8-7b75b49f5462",
+                "target": "b73d3cf9-ce45-456f-a701-97da9e122cec",
+                "node_id": "957a8616-c4a2-4cbe-b0c2-8670b036c8f5",
+                "condition": null,
+                "vertices": null,
+                "loop_closing_edge": false
+              }
+            ]
+          },
+          "product_fields": {
+            "fields_definition": {}
+          },
+          "product_constants": []
+        }
+      ]
+    }
+  ],
+  "status": 1,
+  "rulesTrees": [],
+  "deployments": []
+}

@@ -49,8 +49,8 @@ describe("Reels local decision tables", () => {
   });
 
   it("gives enquiries and feedback the simplified flow with no approval", () => {
-    expect(evaluateTable(LOCAL_TABLES.approval_routing, { nature: "enquiry" }).outputs.steps).toBe("");
-    expect(evaluateTable(LOCAL_TABLES.approval_routing, { nature: "feedback" }).outputs.steps).toBe("");
+    expect(evaluateTable(LOCAL_TABLES.approval_routing, { nature: "enquiry" }).outputs.steps).toBe("none");
+    expect(evaluateTable(LOCAL_TABLES.approval_routing, { nature: "feedback" }).outputs.steps).toBe("none");
   });
 
   it("sends appeals to the owning BU", () => {

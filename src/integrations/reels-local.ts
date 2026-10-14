@@ -96,10 +96,11 @@ export const LOCAL_TABLES: Record<DecisionName, DecisionTable> = {
   approval_routing: {
     name: "Approval routing",
     inputs: ["nature", "buCode", "significant"],
+    /** Comma-separated roles in approval order, or "none" for the simplified flow. */
     outputs: ["steps"],
     defaults: { steps: "team_lead" },
     rows: [
-      { when: { nature: "enquiry,feedback" }, then: { steps: "" }, note: "Simplified flow: no approval" },
+      { when: { nature: "enquiry,feedback" }, then: { steps: "none" }, note: "Simplified flow: no approval" },
       { when: { nature: "complaint", significant: true }, then: { steps: "team_lead,head_of_ce" }, note: "Significant complaint: team lead then Head of CE" },
       { when: { nature: "complaint" }, then: { steps: "team_lead" }, note: "Complaint closure needs the team lead" },
       { when: { nature: "appeal" }, then: { steps: "team_lead" }, note: "Appeal decision needs the BU team lead" },

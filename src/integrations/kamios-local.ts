@@ -129,6 +129,7 @@ export function assess(input: AssessmentInput): AiAssessment {
     (c) => c.status === "closed" && c.subject.toLowerCase().split(/\W+/).some((w) => w.length > 4 && text.toLowerCase().includes(w)),
   );
   const significant = harsh || (money && harm) || repeat >= 2;
+  const agentRelated = input.agentInvolved || /\b(agent|adviser|advisor|financial consultant|representative)\b/i.test(text);
   const nature = input.nature ?? "enquiry";
 
   return {
@@ -140,7 +141,12 @@ export function assess(input: AssessmentInput): AiAssessment {
         .filter(Boolean)
         .join("; ") || "No significance indicators",
     ),
-    potential_chr: s(harm, harm ? 0.65 : 0.6, harm ? "Describes financial or health harm" : "No harm described"),
+    // BSD 3.1.3: potential CHR means an agent-related complaint.
+    potential_chr: s(
+      nature === "complaint" && agentRelated,
+      agentRelated ? (input.agentInvolved ? 0.8 : 0.6) : 0.7,
+      agentRelated ? `Complaint involves ${input.agentCode ? `agent ${input.agentCode}` : "an agent"}` : "No agent involvement described",
+    ),
     reopened_case: s(reopened, reopened ? 0.7 : 0.8, reopened ? "Matches a closed case on the same topic" : "No closed case on the same topic"),
   };
 }

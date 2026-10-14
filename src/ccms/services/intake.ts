@@ -105,6 +105,8 @@ export async function intakeCase(input: IntakeInput, actorId: string | null): Pr
     subject: pick("subject"),
     description: pick("description"),
     nature: pick("nature"),
+    agentInvolved: Boolean(pick("agentInvolved")),
+    agentCode: (pick("agentCode") as string | null) ?? null,
     customer: eds.customerId
       ? { vulnerable: attrs.vulnerable, vulnerableType: attrs.vulnerableType, grade: attrs.customerGrade, vip: attrs.vip }
       : null,

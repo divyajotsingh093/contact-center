@@ -19,6 +19,7 @@ export type EventType =
   | "case.reopened"
   | "communication.queued"
   | "subticket.created"
+  | "subticket.responded"
   | "subticket.overdue"
   | "sla.near_breach"
   | "sla.breached"
