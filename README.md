@@ -6,24 +6,26 @@ Customer Case Management System for the Income POC (BSD v1.2), demo on 23 Oct 20
   access control and masking, hash-chained audit trail, and the CCMS screens.
 - **n8n:** orchestration (mailbox polling, acknowledgements, SLA ticks and alerts, reminders).
 - **Neutrinos Reels:** decision tables (classification, priority, allocation, SLA, approvals, RCA, QA).
-- **Kamios AI Hub:** AI agents (extraction, assessment, duplicates, drafting, RCA).
+- **Neutrinos AI Hub:** AI agents for extraction, assessment, duplicates, drafting, RCA and case summaries (prompts in `aihub/agents/`).
 
 See [`docs/ccms-architecture.md`](docs/ccms-architecture.md) for the design and integration contracts.
-Until the Reels and Kamios credentials are set, local fallbacks with the same contracts run instead,
+Until the Reels and AI Hub credentials are set, local fallbacks with the same contracts run instead,
 and the UI labels their output "Local fallback".
 
 ## Run locally
 
+The app runs on Vercel with a Neon Postgres database. See `CLAUDE.md` for the working agreement
+(which tool owns what, branches, checks) and `docs/status.md` for the current state.
+
 ```bash
-cp .env.example .env          # set DATABASE_URL; leave integrations blank to use the fallbacks
 npm install
-npx prisma migrate deploy
-npm run db:seed               # BUs, teams, personas, EDS mock customers, templates
-npm run db:demo               # optional: the demo samples run through the real intake pipeline
+vercel link                   # team Neutrinos, project contact-center
+vercel env pull .env.local    # database URL, service token, integration settings
 npm run dev
 ```
 
-Open http://localhost:3000 and pick a persona (SSO is out of POC scope).
+For a throwaway local database instead, copy `.env.example` to `.env`, point `DATABASE_URL` at it, then
+`npx prisma migrate deploy && npm run db:seed && npm run db:demo`.
 
 ## Checks
 
